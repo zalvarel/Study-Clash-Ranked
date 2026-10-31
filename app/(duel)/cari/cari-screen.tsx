@@ -54,7 +54,7 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
       socket.on("match:found", (payload) => {
         if (!active) return;
         const duelMode: DuelMode = payload.isBot ? "bot" : mode === "create_room" ? "room" : (mode as DuelMode);
-        actions.setQueuing(payload.duelId, duelMode, payload.isBot, payload.opponent);
+        actions.setMatchFound(payload.duelId, duelMode, payload.isBot, payload.opponent);
         router.replace(`/duel?id=${payload.duelId}`);
       });
 
@@ -80,6 +80,15 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
 
     return () => {
       active = false;
+      getSupabase().auth.getSession().then(({ data }) => {
+        if (data.session?.access_token) {
+          const socket = getSocket(data.session.access_token);
+          socket.off("room:created");
+          socket.off("match:found");
+          socket.off("duel:start");
+          socket.off("error");
+        }
+      });
     };
   }, [user, mode, joinRoomCode, isBot, actions, router]);
 
@@ -113,7 +122,13 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
         </div>
 
         <h1 className="text-2xl font-bold" aria-live="polite">
-          {isBot ? "Menyiapkan bot..." : isRoom ? "Menunggu teman..." : "Mencari lawan..."}
+          {isBot
+            ? "Menyiapkan bot..."
+            : joinRoomCode
+              ? `Bergabung ke room ${joinRoomCode}...`
+              : isRoom
+                ? "Menunggu teman..."
+                : "Mencari lawan..."}
         </h1>
 
         {createdRoomCode && (
@@ -131,9 +146,11 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
         <p className="text-base leading-6 text-muted">
           {isBot
             ? "Sebentar lagi latihan dimulai. Latihan tidak mengubah rating."
-            : isRoom
-              ? "Tunggu temanmu masuk dengan kode room di atas."
-              : "Kami cari pemain dengan rating yang berdekatan denganmu, supaya duelnya adil."}
+            : joinRoomCode
+              ? `Menghubungkan ke room ${joinRoomCode}...`
+              : isRoom
+                ? "Tunggu temanmu masuk dengan kode room di atas."
+                : "Kami cari pemain dengan rating yang berdekatan denganmu, supaya duelnya adil."}
         </p>
       </div>
 

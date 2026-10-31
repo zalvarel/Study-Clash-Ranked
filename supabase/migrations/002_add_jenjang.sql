@@ -6,12 +6,12 @@ alter table profiles add column if not exists jenjang text check (jenjang in ('S
 -- Questions: jenjang untuk filter soal per jenjang sekolah
 alter table questions add column if not exists jenjang text check (jenjang in ('SD', 'SMP', 'SMA'));
 
--- Recreate leaderboard view dengan kolom jenjang
+-- Recreate leaderboard view dengan kolom jenjang (termasuk pemain baru)
 drop view if exists leaderboard_global;
 create view leaderboard_global as
   select id, nickname, jenjang, school, rating, games_played,
          rank() over (order by rating desc) as rank
-  from profiles where games_played > 0;
+  from profiles;
 
 -- Index untuk query per jenjang
 create index if not exists idx_profiles_jenjang on profiles(jenjang);

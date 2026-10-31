@@ -68,11 +68,20 @@ function subscribe(listener: () => void) {
 }
 
 const actions = {
-  setQueuing(duelId: string, mode: DuelMode, isBot: boolean, opponent: { nickname: string; rating: number }) {
+  setMatchFound(duelId: string, mode: DuelMode, isBot: boolean, opponent: { nickname: string; rating: number }) {
     setState({
-      status: "queuing", duelId, mode, isBot, opponent,
-      startsAt: null, currentQuestion: null, myAnswer: null,
-      opponentAnswered: false, myTotalPoints: 0, opponentTotalPoints: 0, result: null,
+      status: "countdown",
+      duelId,
+      mode,
+      isBot,
+      opponent,
+      startsAt: new Date(Date.now() + 3000).toISOString(),
+      currentQuestion: null,
+      myAnswer: null,
+      opponentAnswered: false,
+      myTotalPoints: 0,
+      opponentTotalPoints: 0,
+      result: null,
     });
   },
 

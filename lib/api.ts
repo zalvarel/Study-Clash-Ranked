@@ -75,34 +75,36 @@ export async function getLeaderboard(jenjang?: Jenjang): Promise<Leaderboard> {
   let myRank = 1;
 
   try {
-    let query = supabase.from("leaderboard_global").select("id, nickname, jenjang, school, rating, rank").order("rank");
+    let query = supabase
+      .from("profiles")
+      .select("id, nickname, jenjang, school, rating")
+      .order("rating", { ascending: false });
+
     if (jenjang) query = query.eq("jenjang", jenjang);
     const { data: rows } = await query.limit(10);
 
     if (rows && rows.length > 0) {
-      entries = rows.map((r) => ({
+      entries = rows.map((r, index) => ({
         name: r.nickname || "Pemain",
         rating: r.rating || 1000,
         jenjang: (r.jenjang ?? profil?.jenjang ?? "SMA") as Jenjang,
         sekolah: r.school ?? "",
-        rank: r.rank || 1,
+        rank: index + 1,
       }));
     }
 
     if (user?.id) {
-      const { data: myRow } = await supabase
-        .from("leaderboard_global")
-        .select("rating, rank")
-        .eq("id", user.id)
-        .maybeSingle();
+      const { data: p } = await supabase.from("profiles").select("rating").eq("id", user.id).maybeSingle();
+      if (p?.rating) myRating = p.rating;
 
-      if (myRow) {
-        myRating = myRow.rating ?? 1000;
-        myRank = myRow.rank ?? 1;
-      } else {
-        const { data: p } = await supabase.from("profiles").select("rating").eq("id", user.id).maybeSingle();
-        if (p?.rating) myRating = p.rating;
-      }
+      let countQuery = supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .gt("rating", myRating);
+
+      if (jenjang) countQuery = countQuery.eq("jenjang", jenjang);
+      const { count } = await countQuery;
+      myRank = (count ?? 0) + 1;
     }
   } catch (err) {
     console.warn("Failed to load leaderboard from database:", err);

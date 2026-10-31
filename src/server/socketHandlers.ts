@@ -52,6 +52,7 @@ export function registerSocketHandlers(io: TypedServer, socket: TypedSocket, mat
       socket.emit('error', { code: 'ALREADY_IN_DUEL', message: 'You already have an active duel.' });
       return;
     }
+    matchStore.dequeue(userId);
     const code = generateRoomCode();
     matchStore.enqueue({ userId, nickname, rating, socketId: socket.id, joinedAt: new Date(), subject: `room:${code}`, jenjang: jenjang ?? undefined });
     socket.emit('room:created', { code });
@@ -76,7 +77,13 @@ export function registerSocketHandlers(io: TypedServer, socket: TypedSocket, mat
       return;
     }
     matchStore.dequeue(host.userId);
-    await startDuel(io, matchStore, host, { userId, nickname, rating, socketId: socket.id }, 'room');
+    matchStore.dequeue(userId);
+
+    const hostSocketId = matchStore.getUserSocket(host.userId) || host.socketId;
+    host.socketId = hostSocketId;
+    const myLatestSocketId = matchStore.getUserSocket(userId) || socket.id;
+
+    await startDuel(io, matchStore, host, { userId, nickname, rating, socketId: myLatestSocketId }, 'room');
   });
 
   socket.on('duel:answer', async (raw) => {
@@ -110,7 +117,16 @@ export function registerSocketHandlers(io: TypedServer, socket: TypedSocket, mat
     if (isP1) duel.player1.socketId = socket.id;
     else if (duel.player2) duel.player2.socketId = socket.id;
 
-    if (duel.status === 'running' && duel.currentDeadlineAt) {
+    if (duel.status === 'countdown') {
+      const opp = isP1 ? duel.player2 : duel.player1;
+      socket.emit('match:found', {
+        duelId: duel.duelId,
+        opponent: { nickname: opp?.nickname ?? 'Player', rating: opp?.rating ?? 1000 },
+        isBot: opp?.isBot ?? false,
+      });
+      const startsAt = new Date(Date.now() + 1500).toISOString();
+      socket.emit('duel:start', { startsAt });
+    } else if (duel.status === 'running' && duel.currentDeadlineAt) {
       const q = duel.questions[duel.currentPosition];
       if (q) {
         socket.emit('duel:question', {
@@ -179,6 +195,9 @@ async function startBotDuel(
   io: TypedServer, matchStore: MatchStore,
   player: { userId: string; nickname: string; rating: number; socketId: string; jenjang?: string }
 ) {
+  const liveSocketId = matchStore.getUserSocket(player.userId) || player.socketId;
+  player.socketId = liveSocketId;
+
   const botRating = player.rating + Math.floor((Math.random() - 0.5) * 80);
   const duelId = randomUUID();
   const difficultyBand = getDifficultyBand(player.rating);
@@ -225,6 +244,11 @@ async function startDuel(
   p2: { userId: string; nickname: string; rating: number; socketId: string; jenjang?: string },
   mode: 'ranked' | 'room'
 ) {
+  const p1SocketId = matchStore.getUserSocket(p1.userId) || p1.socketId;
+  const p2SocketId = matchStore.getUserSocket(p2.userId) || p2.socketId;
+  p1.socketId = p1SocketId;
+  p2.socketId = p2SocketId;
+
   const avgRating = Math.round((p1.rating + p2.rating) / 2);
   const difficultyBand = getDifficultyBand(avgRating);
   const questions = await pickQuestions('math', difficultyBand, DUEL_CONFIG.questionsPerDuel, p2.jenjang);

@@ -32,7 +32,7 @@ export default function DuelScreen() {
   }, [duel, router]);
 
   useEffect(() => {
-    if (duel?.status !== "playing" && duel?.status !== "countdown") return;
+    if (!duelIdParam && duel?.status !== "playing" && duel?.status !== "countdown") return;
 
     let active = true;
 
@@ -42,6 +42,16 @@ export default function DuelScreen() {
       if (!token || !active) return;
 
       const socket = getSocket(token);
+
+      socket.on("match:found", (payload) => {
+        if (!active) return;
+        actions.setMatchFound(payload.duelId, "room", payload.isBot, payload.opponent);
+      });
+
+      socket.on("duel:start", (payload) => {
+        if (!active) return;
+        actions.setCountdown(payload.startsAt);
+      });
 
       socket.on("duel:question", (payload) => {
         if (!active) return;
@@ -64,7 +74,7 @@ export default function DuelScreen() {
         router.replace("/hasil");
       });
 
-      if (duelIdParam && duel?.status === "playing") {
+      if (duelIdParam) {
         socket.emit("duel:rejoin", { duelId: duelIdParam });
       }
     }
@@ -73,8 +83,19 @@ export default function DuelScreen() {
 
     return () => {
       active = false;
+      getSupabase().auth.getSession().then(({ data }) => {
+        if (data.session?.access_token) {
+          const socket = getSocket(data.session.access_token);
+          socket.off("match:found");
+          socket.off("duel:start");
+          socket.off("duel:question");
+          socket.off("duel:question_result");
+          socket.off("duel:opponent_answered");
+          socket.off("duel:end");
+        }
+      });
     };
-  }, [duel?.status, duelIdParam, actions, router]);
+  }, [duelIdParam, duel?.status, actions, router]);
 
   useEffect(() => {
     if (duel?.status === "playing" && !paused) headingRef.current?.focus();
