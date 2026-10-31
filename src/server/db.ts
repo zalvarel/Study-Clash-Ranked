@@ -1,7 +1,6 @@
 /**
- * src/server/db.ts
- * Supabase Admin client — only imported in src/server/.
- * NEVER import this file in src/app/ or src/components/.
+ * Supabase Admin client — hanya diimpor di src/server/.
+ * JANGAN diimpor di app/ atau components/.
  */
 
 import { createClient } from '@supabase/supabase-js';

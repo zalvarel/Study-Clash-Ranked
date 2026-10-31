@@ -1,33 +1,39 @@
 "use client";
 
-import { createContext, useContext, useMemo, useSyncExternalStore, type ReactNode } from "react";
-import { DUEL_RULES, submitAnswer, type DuelMode, type DuelQuestion, type Jenjang, type Match, type PlayerSummary } from "@/lib/api";
+import {
+  createContext, useContext, useMemo, useSyncExternalStore, type ReactNode,
+} from "react";
+import type { DuelEndPayload, DuelQuestionPayload, DuelQuestionResultPayload, ReviewItem } from "@/src/shared/events";
 
-/** State duel di sisi klien: progres dan pilihan pemain. Skor & hasil diambil dari lib/api. */
-export type DuelState = {
-  status: "playing" | "finished";
-  duelId: string;
-  mode: DuelMode;
-  jenjang: Jenjang;
-  me: PlayerSummary;
-  opponent: PlayerSummary;
-  questions: DuelQuestion[];
-  /** Soal yang sedang dikerjakan (0-based). */
-  index: number;
-  questionStartedAt: number;
-  /** Diisi saat duel dijeda (mis. koneksi terputus). */
-  pausedAt: number | null;
-  /** Opsi yang dipilih pemain per soal; null kalau tidak menjawab. */
-  myAnswers: (number | null)[];
+export type DuelMode = "ranked" | "bot" | "room";
+export type Jenjang = "SD" | "SMP" | "SMA";
+
+export type ActiveQuestion = {
+  position: number;
+  body: string;
+  options: Array<{ id: string; text: string }> | null;
+  type: "mcq" | "numeric";
+  deadlineAt: string;
+  timeLimitSec: number;
+  totalQuestions: number;
 };
 
-const STORAGE_KEY = "scr:duel";
-/** Waktu per soal (ms) untuk jenjang duel. */
-export function questionMs(jenjang: Jenjang) {
-  return DUEL_RULES.secondsPerQuestion[jenjang] * 1000;
-}
+export type DuelState = {
+  status: "queuing" | "countdown" | "playing" | "finished";
+  duelId: string;
+  mode: DuelMode;
+  isBot: boolean;
+  opponent: { nickname: string; rating: number };
+  startsAt: string | null;
+  currentQuestion: ActiveQuestion | null;
+  myAnswer: string | null;
+  opponentAnswered: boolean;
+  myTotalPoints: number;
+  opponentTotalPoints: number;
+  result: DuelEndPayload | null;
+};
 
-// ---- Store kecil yang disimpan di sessionStorage ----
+const STORAGE_KEY = "scr:duel:v2";
 
 let state: DuelState | null = null;
 let loaded = false;
@@ -38,9 +44,10 @@ function getSnapshot(): DuelState | null {
     loaded = true;
     try {
       const raw = window.sessionStorage.getItem(STORAGE_KEY);
-      const parsed = raw ? (JSON.parse(raw) as Partial<DuelState>) : null;
-      // Abaikan state format lama (sebelum ada duelId / jenjang).
-      state = parsed?.duelId && parsed.jenjang ? (parsed as DuelState) : null;
+      state = raw ? (JSON.parse(raw) as DuelState) : null;
+      if (state?.status === "playing" || state?.status === "countdown") {
+        state = { ...state, status: "finished" };
+      }
     } catch {
       state = null;
     }
@@ -60,67 +67,81 @@ function subscribe(listener: () => void) {
   return () => listeners.delete(listener);
 }
 
-// ---- Aksi ----
-
 const actions = {
-  start(me: Omit<PlayerSummary, "rating">, match: Match, questions: DuelQuestion[]) {
+  setMatchFound(duelId: string, mode: DuelMode, isBot: boolean, opponent: { nickname: string; rating: number }) {
     setState({
-      status: "playing",
-      duelId: match.duelId,
-      mode: match.mode,
-      jenjang: match.jenjang,
-      me: { ...me, rating: match.myRating },
-      opponent: match.opponent,
-      questions,
-      index: 0,
-      questionStartedAt: Date.now(),
-      pausedAt: null,
-      myAnswers: questions.map(() => null),
+      status: "countdown",
+      duelId,
+      mode,
+      isBot,
+      opponent,
+      startsAt: new Date(Date.now() + 3000).toISOString(),
+      currentQuestion: null,
+      myAnswer: null,
+      opponentAnswered: false,
+      myTotalPoints: 0,
+      opponentTotalPoints: 0,
+      result: null,
     });
   },
 
-  answer(choice: number) {
+  setCountdown(startsAt: string) {
     const d = getSnapshot();
-    if (!d || d.status !== "playing" || d.myAnswers[d.index] !== null) return;
-    const myAnswers = [...d.myAnswers];
-    myAnswers[d.index] = choice;
-    setState({ ...d, myAnswers });
-    void submitAnswer(d.duelId, d.index, choice);
+    if (!d) return;
+    setState({ ...d, status: "countdown", startsAt });
   },
 
-  /** Pindah ke soal berikutnya, atau selesaikan duel setelah soal terakhir. */
-  advance(fromIndex: number) {
+  setQuestion(payload: DuelQuestionPayload) {
     const d = getSnapshot();
-    if (!d || d.status !== "playing" || d.index !== fromIndex) return;
-    if (d.index + 1 < d.questions.length) {
-      setState({ ...d, index: d.index + 1, questionStartedAt: Date.now() });
-      return;
-    }
-    setState({ ...d, status: "finished", pausedAt: null });
+    if (!d) return;
+    setState({
+      ...d,
+      status: "playing",
+      currentQuestion: {
+        position: payload.position,
+        body: payload.body,
+        options: payload.options ?? null,
+        type: payload.type,
+        deadlineAt: payload.deadlineAt,
+        timeLimitSec: payload.timeLimitSec,
+        totalQuestions: payload.totalQuestions,
+      },
+      myAnswer: null,
+      opponentAnswered: false,
+    });
   },
 
-  pause() {
+  setMyAnswer(answer: string) {
     const d = getSnapshot();
-    if (!d || d.status !== "playing" || d.pausedAt !== null) return;
-    setState({ ...d, pausedAt: Date.now() });
+    if (!d) return;
+    setState({ ...d, myAnswer: answer });
   },
 
-  /** Lanjutkan duel; waktu yang terpakai selama jeda tidak dihitung. */
-  resume() {
+  setQuestionResult(payload: DuelQuestionResultPayload) {
     const d = getSnapshot();
-    if (!d || d.pausedAt === null) return;
-    setState({ ...d, questionStartedAt: d.questionStartedAt + (Date.now() - d.pausedAt), pausedAt: null });
+    if (!d) return;
+    setState({ ...d, myTotalPoints: payload.myTotalPoints });
+  },
+
+  setOpponentAnswered() {
+    const d = getSnapshot();
+    if (!d) return;
+    setState({ ...d, opponentAnswered: true });
+  },
+
+  setFinished(payload: DuelEndPayload) {
+    const d = getSnapshot();
+    if (!d) return;
+    setState({ ...d, status: "finished", result: payload });
   },
 
   reset() {
     setState(null);
+    loaded = false;
   },
 };
 
-// ---- Context ----
-
 type DuelContextValue = {
-  /** undefined = belum dibaca dari sessionStorage (render server / hidrasi). */
   duel: DuelState | null | undefined;
   actions: typeof actions;
 };
@@ -138,3 +159,5 @@ export function useDuel(): DuelContextValue {
   if (!ctx) throw new Error("useDuel harus dipakai di dalam <DuelProvider>.");
   return ctx;
 }
+
+export type { ReviewItem };
