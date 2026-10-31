@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Token warna dari Figma (file sYPy16KcrFRTzKqdgZA9ix). */
+@theme inline {
+  --color-ink: #18181b; /* teks utama, tombol utama */
+  --color-muted: #52525b; /* teks sekunder */
+  --color-subtle: #71717a; /* placeholder, "..." */
+  --color-line: #d4d4d8; /* garis, border kartu */
+  --color-track: #e4e4e7; /* bilah waktu, nomor langkah */
+  --color-surface: #f4f4f5; /* kartu, latar luar kolom */
+  --color-danger: #b91c1c; /* pesan galat */
+  --font-sans: var(--font-jakarta);
+}
+
+/*
+ * Hanya tema terang. Tidak ada dukungan dark mode: warna teks dan latar
+ * dipasang langsung dari token, tidak bergantung pada prefers-color-scheme.
+ */
+@layer base {
+  html {
+    color-scheme: light;
+    background-color: #ffffff;
+  }
+
+  body {
+    @apply bg-white font-sans text-ink antialiased;
+  }
+
+  /* Cincin fokus keyboard yang konsisten di semua elemen interaktif. */
+  :focus-visible {
+    outline: 2px solid var(--color-ink);
+    outline-offset: 3px;
+  }
+}
+
+@keyframes putar {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@utility animate-putar {
+  animation: putar 1.2s linear infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation-duration: 4s;
+  }
+}

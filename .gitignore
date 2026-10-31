@@ -31,6 +31,27 @@ yarn-error.log*
 # vercel
 .vercel
 
-# typescript
+# === Database lokal ===
+*.sqlite
+*.sqlite3
+*.db
+
+# === Editor & OS ===
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# === Log & temp ===
+logs/
+*.log
+tmp/
+.cache/
+
+# === Next.js / TypeScript ===
 *.tsbuildinfo
 next-env.d.ts
+*.pem
