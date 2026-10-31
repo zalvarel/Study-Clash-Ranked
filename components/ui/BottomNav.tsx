@@ -1,34 +1,24 @@
-/* eslint-disable @next/next/no-img-element -- ikon SVG statis dari Figma */
 import Link from "next/link";
+import type { ReactNode } from "react";
+import { Icon, type IconName } from "./Icon";
+import { Brand } from "./Logo";
 
-export type NavTab = "beranda" | "peringkat";
+export type NavTab = "beranda" | "peringkat" | "profil";
 
-const tabs: { id: NavTab; href: string; label: string; icon: string; iconActive: string; w: number; h: number }[] = [
-  {
-    id: "beranda",
-    href: "/lobby",
-    label: "Beranda",
-    icon: "/figma/ikon-beranda.svg",
-    iconActive: "/figma/ikon-beranda-aktif.svg",
-    w: 20,
-    h: 21,
-  },
-  {
-    id: "peringkat",
-    href: "/peringkat",
-    label: "Peringkat",
-    icon: "/figma/ikon-peringkat.svg",
-    iconActive: "/figma/ikon-peringkat-aktif.svg",
-    w: 16,
-    h: 20,
-  },
+const tabs: { id: NavTab; href: string; label: string; icon: IconName }[] = [
+  { id: "beranda", href: "/lobby", label: "Beranda", icon: "beranda" },
+  { id: "peringkat", href: "/peringkat", label: "Peringkat", icon: "peringkat" },
+  { id: "profil", href: "/profil", label: "Profil", icon: "profil" },
 ];
 
-/** Navigasi bawah (node 2:65 / 3:131). Hanya di layar < 768px. */
+/** Navigasi bawah, tiga tab. Tampil di layar < 1024px. */
 export function BottomNav({ active }: { active: NavTab }) {
   return (
-    <nav aria-label="Navigasi utama" className="sticky bottom-0 border-t-[1.5px] border-line bg-white md:hidden">
-      <ul className="flex h-16">
+    <nav
+      aria-label="Navigasi utama"
+      className="sticky bottom-0 z-10 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
+    >
+      <ul className="mx-auto flex max-w-[560px] gap-2 px-4 py-2.5 sm:px-6">
         {tabs.map((tab) => {
           const isActive = tab.id === active;
           return (
@@ -36,13 +26,11 @@ export function BottomNav({ active }: { active: NavTab }) {
               <Link
                 href={tab.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`flex flex-1 flex-col items-center justify-center gap-1 text-[13px] transition-colors hover:bg-surface ${
-                  isActive ? "font-bold text-ink" : "font-medium text-muted"
+                className={`flex h-12 flex-1 items-center justify-center gap-2 rounded-button text-sm font-bold transition-colors ${
+                  isActive ? "bg-violet-50 text-violet" : "text-muted hover:bg-surface hover:text-ink"
                 }`}
               >
-                <span className="flex size-6 items-center justify-center">
-                  <img src={isActive ? tab.iconActive : tab.icon} alt="" width={tab.w} height={tab.h} />
-                </span>
+                <Icon name={tab.icon} size={20} />
                 {tab.label}
               </Link>
             </li>
@@ -53,40 +41,43 @@ export function BottomNav({ active }: { active: NavTab }) {
   );
 }
 
-/** Versi desktop dari BottomNav: navbar atas. Hanya di layar >= 768px. */
-export function TopNav({ active }: { active: NavTab }) {
+/** Navbar atas desktop: logo, tab, dan slot kanan. Tanpa `active` = hanya logo. */
+export function TopNav({ active, right }: { active?: NavTab; right?: ReactNode }) {
   return (
-    <header className="sticky top-0 z-10 hidden border-b-[1.5px] border-line bg-white md:block">
-      <div className="mx-auto flex h-16 max-w-[1040px] items-center justify-between gap-6 px-6">
-        <Link href="/lobby" className="flex items-center gap-2.5 rounded-lg text-base font-bold text-ink">
-          <span className="flex size-8 items-center justify-center" aria-hidden="true">
-            <img src="/figma/logo.svg" alt="" width={27.7} height={15.1} className="-skew-x-[18deg]" />
-          </span>
-          Study Clash Ranked
-        </Link>
-        <nav aria-label="Navigasi utama">
-          <ul className="flex gap-1">
-            {tabs.map((tab) => {
-              const isActive = tab.id === active;
-              return (
-                <li key={tab.id}>
-                  <Link
-                    href={tab.href}
-                    aria-current={isActive ? "page" : undefined}
-                    className={`flex h-10 items-center gap-2 rounded-xl px-3.5 text-sm transition-colors hover:bg-surface ${
-                      isActive ? "bg-surface font-bold text-ink" : "font-medium text-muted"
-                    }`}
-                  >
-                    <span className="flex size-6 items-center justify-center">
-                      <img src={isActive ? tab.iconActive : tab.icon} alt="" width={tab.w} height={tab.h} />
-                    </span>
-                    {tab.label}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
+    <header className="sticky top-0 z-10 hidden border-b border-line bg-white lg:block">
+      <div className="mx-auto flex h-[72px] max-w-[1200px] items-center gap-6 px-8">
+        {/* Tanpa tab (mis. saat duel): logo bukan tautan supaya tidak keluar tanpa sengaja. */}
+        {active ? (
+          <Link href="/lobby" className="rounded-xl">
+            <Brand />
+          </Link>
+        ) : (
+          <Brand />
+        )}
+        {active && (
+          <nav aria-label="Navigasi utama" className="mx-auto">
+            <ul className="flex gap-1.5">
+              {tabs.map((tab) => {
+                const isActive = tab.id === active;
+                return (
+                  <li key={tab.id}>
+                    <Link
+                      href={tab.href}
+                      aria-current={isActive ? "page" : undefined}
+                      className={`flex h-[42px] items-center gap-2 rounded-input px-5 text-[15px] font-bold transition-colors ${
+                        isActive ? "bg-violet-50 text-violet" : "text-muted hover:bg-surface hover:text-ink"
+                      }`}
+                    >
+                      <Icon name={tab.icon} size={18} />
+                      {tab.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+        )}
+        <div className="ml-auto flex items-center gap-3">{right}</div>
       </div>
     </header>
   );

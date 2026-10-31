@@ -62,3 +62,9 @@ export function cariSekolah(jenjang: Jenjang, kata: string): string[] {
     return potongan.every((p) => n.includes(p));
   });
 }
+
+/** Sekolah ada di daftar bawaan (semuanya sekolah di Indonesia). */
+export function isSekolahTerdaftar(nama: string): boolean {
+  const n = normalisasi(nama);
+  return Object.values(SEKOLAH).some((daftar) => daftar.some((s) => normalisasi(s) === n));
+}

@@ -1,9 +1,36 @@
 import { DAFTAR_JENJANG, JENJANG_LABEL, type Jenjang } from "@/lib/api";
+import { Icon } from "@/components/ui/Icon";
+import { errorClass, labelClass } from "@/components/ui/Field";
 
 const KETERANGAN: Record<Jenjang, string> = {
   SD: "Kelas 1–6",
   SMP: "Kelas 7–9",
   SMA: "Kelas 10–12",
+};
+
+/** Warna per jenjang: SD oranye, SMP ungu, SMA/SMK hitam. */
+const WARNA: Record<Jenjang, { dot: string; teks: string; aktif: string; ket: string; centang: string }> = {
+  SD: {
+    dot: "bg-orange",
+    teks: "text-orange-ink",
+    aktif: "border-2 border-orange bg-orange-50",
+    ket: "text-orange-ink",
+    centang: "bg-orange-ink",
+  },
+  SMP: {
+    dot: "bg-violet",
+    teks: "text-violet",
+    aktif: "border-2 border-violet bg-violet-50",
+    ket: "text-violet-ink",
+    centang: "bg-violet",
+  },
+  SMA: {
+    dot: "bg-ink",
+    teks: "text-ink",
+    aktif: "border-2 border-ink bg-surface",
+    ket: "text-ink",
+    centang: "bg-ink",
+  },
 };
 
 type JenjangPickerProps = {
@@ -12,21 +39,22 @@ type JenjangPickerProps = {
   error?: string;
 };
 
-/** Pilihan jenjang: tiga kartu besar (radio). Id radio pertama: "jenjang-SD". */
+/** Pilihan jenjang: tiga kartu (radio). Id radio pertama: "jenjang-SD". */
 export function JenjangPicker({ value, onChange, error }: JenjangPickerProps) {
   return (
-    <fieldset aria-describedby={error ? "jenjang-error" : undefined} className="flex flex-col gap-3">
-      <legend className="mb-3 text-sm font-semibold">Jenjang</legend>
-      <div className="grid grid-cols-3 gap-2">
+    <fieldset aria-describedby={error ? "jenjang-error" : undefined} className="flex flex-col gap-2">
+      <legend className={`${labelClass} mb-2`}>Jenjang</legend>
+      <div className="grid grid-cols-3 gap-2.5">
         {DAFTAR_JENJANG.map((j) => {
           const aktif = value === j;
+          const w = WARNA[j];
           return (
             <label
               key={j}
-              className={`flex min-h-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-xl px-1 text-center transition-colors has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-ink ${
+              className={`relative flex h-[84px] cursor-pointer flex-col justify-end rounded-button p-2.5 transition-colors min-[380px]:p-3 has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-violet sm:h-[96px] ${
                 aktif
-                  ? "border-2 border-ink bg-surface"
-                  : `border-[1.5px] bg-white hover:border-ink hover:bg-surface ${error ? "border-danger" : "border-line"}`
+                  ? w.aktif
+                  : `border-[1.5px] bg-white hover:border-zinc-400 ${error ? "border-danger" : "border-line"}`
               }`}
             >
               <input
@@ -38,14 +66,29 @@ export function JenjangPicker({ value, onChange, error }: JenjangPickerProps) {
                 onChange={() => onChange(j)}
                 className="sr-only"
               />
-              <span className="text-lg leading-6 font-bold">{JENJANG_LABEL[j]}</span>
-              <span className="text-xs text-muted">{KETERANGAN[j]}</span>
+              <span aria-hidden="true" className={`absolute top-3 left-3 size-2.5 rounded-full ${w.dot}`} />
+              {aktif && (
+                <span
+                  aria-hidden="true"
+                  className={`absolute top-2.5 right-2.5 flex size-5 items-center justify-center rounded-full text-white ${w.centang}`}
+                >
+                  <Icon name="centang" size={12} strokeWidth={3} />
+                </span>
+              )}
+              <span
+                className={`text-[15px] leading-tight font-extrabold whitespace-nowrap min-[380px]:text-[17px] sm:text-xl ${w.teks}`}
+              >
+                {JENJANG_LABEL[j].replace(" / ", "/")}
+              </span>
+              <span className={`mt-0.5 text-[11px] font-medium sm:text-xs ${aktif ? w.ket : "text-muted"}`}>
+                {KETERANGAN[j]}
+              </span>
             </label>
           );
         })}
       </div>
       {error && (
-        <p id="jenjang-error" className="text-sm font-medium text-danger">
+        <p id="jenjang-error" className={errorClass}>
           {error}
         </p>
       )}

@@ -1,20 +1,65 @@
 @import "tailwindcss";
 
-/* Token warna dari Figma (file sYPy16KcrFRTzKqdgZA9ix). */
+/*
+ * Token desain Study Clash Ranked (lihat design-ref/README.md).
+ * Breakpoint memakai bawaan Tailwind: sm = 640px (kolom tengah 560px),
+ * lg = 1024px (desktop: navbar atas, grid).
+ */
 @theme inline {
-  --color-ink: #18181b; /* teks utama, tombol utama */
+  /* Kosongkan palet bawaan supaya hanya warna desain yang dipakai. */
+  --color-violet-*: initial;
+  --color-orange-*: initial;
+  --color-amber-*: initial;
+
+  /* Ungu utama. "Kamu" = ungu. */
+  --color-violet: #4f46e5;
+  --color-violet-hover: #4338ca;
+  --color-violet-ink: #3730a3; /* teks di atas tint ungu */
+  --color-violet-50: #eeedfd;
+  --color-violet-100: #dddbfa;
+
+  /* Oranye aksen. "Lawan" = oranye. Teks/ikon kecil memakai orange-ink (AA). */
+  --color-orange: #f26b1d;
+  --color-orange-ink: #b84a0e;
+  --color-orange-50: #fff1e8;
+  --color-orange-100: #ffdfcb;
+
+  /* Teks dan permukaan. */
+  --color-ink: #18181b; /* teks utama */
   --color-muted: #52525b; /* teks sekunder */
-  --color-subtle: #71717a; /* placeholder, "..." */
-  --color-line: #d4d4d8; /* garis, border kartu */
-  --color-track: #e4e4e7; /* bilah waktu, nomor langkah */
-  --color-surface: #f4f4f5; /* kartu, latar luar kolom */
-  --color-danger: #b91c1c; /* pesan galat */
+  --color-subtle: #71717a; /* teks redup, hanya di atas putih */
+  --color-line: #e4e4e7; /* garis, border kartu */
+  --color-track: #e4e4e7; /* bilah waktu */
+  --color-surface: #f6f6fb; /* latar halaman */
+  --color-neutral-chip: #e4e4e7;
+  --color-neutral-ink: #3f3f46;
+
+  /* Status. */
+  --color-success: #15803d;
+  --color-success-bg: #dcfce7;
+  --color-danger: #be123c;
+  --color-danger-bg: #ffe4e6;
+  --color-amber: #92400e;
+  --color-amber-bg: #fef3c7;
+
+  /* Radius. */
+  --radius-card: 28px;
+  --radius-card-sm: 24px;
+  --radius-tile: 18px;
+  --radius-button: 16px;
+  --radius-input: 14px;
+
+  /* Bayangan. */
+  --shadow-primary: 0 10px 22px -10px rgb(79 70 229 / 0.7);
+  --shadow-pop: 0 18px 40px -18px rgb(24 24 27 / 0.3);
+  --shadow-frame: 0 30px 60px -28px rgb(79 70 229 / 0.35);
+
   --font-sans: var(--font-jakarta);
 }
 
 /*
- * Hanya tema terang. Tidak ada dukungan dark mode: warna teks dan latar
- * dipasang langsung dari token, tidak bergantung pada prefers-color-scheme.
+ * Hanya tema terang. Warna teks dan latar dipasang langsung dari token,
+ * tidak bergantung pada prefers-color-scheme.
  */
 @layer base {
   html {
@@ -28,9 +73,15 @@
 
   /* Cincin fokus keyboard yang konsisten di semua elemen interaktif. */
   :focus-visible {
-    outline: 2px solid var(--color-ink);
+    outline: 2px solid var(--color-violet);
     outline-offset: 3px;
   }
+}
+
+/* Kapsul miring khas desain: hiasan latar dan logo. */
+@utility capsule {
+  border-radius: 9999px;
+  transform: skewX(-20deg);
 }
 
 @keyframes putar {

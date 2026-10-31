@@ -5,33 +5,56 @@ type MobileColumnProps = {
   children: ReactNode;
   /** Kelas untuk area isi (padding, gap, dsb.). */
   className?: string;
-  /** Tab aktif. Kalau diisi, tampil BottomNav (< 768px) atau navbar atas (>= 768px). */
+  /** Tab aktif. Kalau diisi: BottomNav (< 1024px) dan navbar atas (>= 1024px). */
   nav?: NavTab;
-  /** Lebar kolom di layar >= 768px: "narrow" 420px, "wide" 640px. */
-  width?: "narrow" | "wide";
+  /** Tampilkan navbar atas berisi logo saja (>= 1024px), untuk layar tanpa tab. */
+  brandBar?: boolean;
+  /** Isi slot kanan navbar atas. */
+  topBarRight?: ReactNode;
+  /**
+   * Lebar kartu di desktop (>= 1024px). Di 640–1023px selalu kolom 560px.
+   * "narrow" 560px, "wide" 880px, "full" 1120px.
+   */
+  width?: "narrow" | "wide" | "full";
+  /** Desktop (>= 1024px): tanpa bingkai kartu, isi langsung di atas latar abu. */
+  bareDesktop?: boolean;
 };
 
+const LEBAR_DESKTOP = { narrow: "lg:max-w-[560px]", wide: "lg:max-w-[880px]", full: "lg:max-w-[1120px]" };
+
 /**
- * Kolom halaman.
- * < 768px: persis wireframe, lebar penuh, latar putih.
- * >= 768px: latar abu muda, kolom putih di tengah (420px atau 640px).
+ * Kerangka halaman.
+ * < 640px: lebar penuh, latar putih.
+ * 640–1023px: latar abu muda, kartu putih 560px di tengah.
+ * >= 1024px: navbar atas (kalau ada nav/brandBar), kartu selebar `width`.
  */
-export function MobileColumn({ children, className = "", nav, width = "narrow" }: MobileColumnProps) {
+export function MobileColumn({
+  children,
+  className = "",
+  nav,
+  brandBar = false,
+  topBarRight,
+  width = "narrow",
+  bareDesktop = false,
+}: MobileColumnProps) {
+  const adaBar = nav !== undefined || brandBar;
   return (
-    <div className="flex min-h-dvh flex-col bg-white md:bg-surface">
-      {nav && <TopNav active={nav} />}
+    <div className="flex min-h-dvh flex-col bg-white sm:bg-surface">
+      {adaBar && <TopNav active={nav} right={topBarRight} />}
       <div
-        className={`flex flex-1 flex-col md:items-center md:px-6 md:py-10 ${nav ? "md:justify-start" : "md:justify-center"}`}
+        className={`flex flex-1 flex-col sm:items-center sm:px-6 sm:py-10 ${adaBar ? "sm:justify-start" : "sm:justify-center"}`}
       >
         <div
-          className={`flex w-full flex-1 flex-col bg-white md:flex-none md:overflow-hidden md:rounded-3xl md:border-[1.5px] md:border-line ${
-            nav ? "md:min-h-[560px]" : "md:min-h-[720px]"
-          } ${width === "wide" ? "md:max-w-[640px]" : "md:max-w-[420px]"}`}
+          className={`relative flex w-full flex-1 flex-col bg-white sm:max-w-[560px] sm:flex-none sm:overflow-hidden sm:rounded-card sm:border-[1.5px] sm:border-line ${
+            adaBar ? "sm:min-h-[560px]" : "sm:min-h-[720px]"
+          } ${LEBAR_DESKTOP[width]} ${
+            bareDesktop ? "lg:min-h-0 lg:overflow-visible lg:rounded-none lg:border-0 lg:bg-transparent" : ""
+          }`}
         >
           <main className={`flex flex-1 flex-col ${className}`}>{children}</main>
-          {nav && <BottomNav active={nav} />}
         </div>
       </div>
+      {nav && <BottomNav active={nav} />}
     </div>
   );
 }

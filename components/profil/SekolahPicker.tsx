@@ -2,6 +2,8 @@
 
 import { useId, useState, type KeyboardEvent } from "react";
 import { cariSekolah, type Jenjang } from "@/lib/api";
+import { Icon } from "@/components/ui/Icon";
+import { errorClass, helpClass, inputClass, labelClass } from "@/components/ui/Field";
 
 /** Nilai khusus untuk pilihan "Sekolah lain". */
 export const SEKOLAH_LAIN = "__sekolah_lain__";
@@ -56,38 +58,45 @@ export function SekolahPicker({ jenjang, value, onChange, error }: SekolahPicker
   const describedBy = [error ? "sekolah-error" : null, disabled ? "sekolah-help" : null].filter(Boolean).join(" ");
 
   return (
-    <div className="flex flex-col gap-3">
-      <label htmlFor="sekolah" className="text-sm font-semibold">
+    <div className="flex flex-col gap-2">
+      <label htmlFor="sekolah" className={labelClass}>
         Asal sekolah
       </label>
-      <input
-        id="sekolah"
-        type="text"
-        role="combobox"
-        autoComplete="off"
-        aria-autocomplete="list"
-        aria-expanded={open && !disabled}
-        aria-controls={listId}
-        aria-activedescendant={open ? optionId(Math.min(active, opsi.length - 1)) : undefined}
-        aria-invalid={error ? true : undefined}
-        aria-describedby={describedBy || undefined}
-        disabled={disabled}
-        value={query}
-        placeholder={disabled ? "Pilih jenjang dulu" : "Cari nama sekolah"}
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setActive(0);
-          setOpen(true);
-          if (value !== null) onChange(null);
-        }}
-        onFocus={() => setOpen(true)}
-        onClick={() => setOpen(true)}
-        onBlur={() => setOpen(false)}
-        onKeyDown={onKeyDown}
-        className="h-13 w-full rounded-xl border-[1.5px] border-ink bg-white px-4 text-base text-ink placeholder:text-subtle focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:border-line disabled:bg-surface aria-invalid:border-danger"
-      />
+      <div className="relative">
+        <Icon
+          name="cari"
+          size={20}
+          className="pointer-events-none absolute top-1/2 left-4 -translate-y-1/2 text-subtle"
+        />
+        <input
+          id="sekolah"
+          type="text"
+          role="combobox"
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-expanded={open && !disabled}
+          aria-controls={listId}
+          aria-activedescendant={open ? optionId(Math.min(active, opsi.length - 1)) : undefined}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={describedBy || undefined}
+          disabled={disabled}
+          value={query}
+          placeholder={disabled ? "Pilih jenjang dulu" : "Cari nama sekolah"}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setActive(0);
+            setOpen(true);
+            if (value !== null) onChange(null);
+          }}
+          onFocus={() => setOpen(true)}
+          onClick={() => setOpen(true)}
+          onBlur={() => setOpen(false)}
+          onKeyDown={onKeyDown}
+          className={`${inputClass} pl-12`}
+        />
+      </div>
       {disabled && (
-        <p id="sekolah-help" className="-mt-1 text-sm text-muted">
+        <p id="sekolah-help" className={helpClass}>
           Daftar sekolah muncul setelah jenjang dipilih.
         </p>
       )}
@@ -96,38 +105,44 @@ export function SekolahPicker({ jenjang, value, onChange, error }: SekolahPicker
         role="listbox"
         aria-label="Daftar sekolah"
         hidden={!open || disabled}
-        className="-mt-1 max-h-60 overflow-auto rounded-xl border-[1.5px] border-line bg-white py-1"
+        className="max-h-72 overflow-auto rounded-button border-[1.5px] border-line bg-white p-2 shadow-pop"
       >
         {hasil.length === 0 && (
-          <li role="presentation" className="px-4 py-2 text-sm text-muted">
+          <li role="presentation" className="px-3 py-2.5 text-sm text-muted">
             Tidak ada sekolah yang cocok.
           </li>
         )}
         {opsi.map((nama, i) => {
           const lain = nama === SEKOLAH_LAIN;
+          const terpilih = value === nama;
           return (
             <li
               key={nama}
               id={optionId(i)}
               role="option"
-              aria-selected={value === nama}
+              aria-selected={terpilih}
               // mousedown, bukan click: supaya tidak didahului blur yang menutup daftar.
               onMouseDown={(e) => {
                 e.preventDefault();
                 pilih(nama);
               }}
               onMouseEnter={() => setActive(i)}
-              className={`cursor-pointer px-4 py-2.5 text-base ${i === active ? "bg-surface" : ""} ${
-                lain ? "border-t border-line font-semibold" : ""
-              } ${value === nama ? "font-bold" : ""}`}
+              className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-[10px] px-3 py-2 text-[15px] ${
+                i === active || terpilih ? "bg-violet-50 text-violet-ink" : "text-ink"
+              } ${lain ? "font-bold text-violet" : "font-semibold"}`}
             >
-              {lain ? `${LABEL_LAIN} (tulis sendiri)` : nama}
+              <span>{lain ? `${LABEL_LAIN} (tulis sendiri)` : nama}</span>
+              {lain ? (
+                <Icon name="plus" size={18} />
+              ) : (
+                terpilih && <Icon name="centang" size={18} strokeWidth={2.5} />
+              )}
             </li>
           );
         })}
       </ul>
       {error && (
-        <p id="sekolah-error" className="text-sm font-medium text-danger">
+        <p id="sekolah-error" className={errorClass}>
           {error}
         </p>
       )}

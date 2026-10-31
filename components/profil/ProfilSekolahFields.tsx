@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
+import { errorClass, helpClass, inputClass, labelClass } from "@/components/ui/Field";
 import type { Jenjang } from "@/lib/api";
 import { SEKOLAH_MAKS, validateNamaSekolah } from "@/lib/validasi";
 import { JenjangPicker } from "./JenjangPicker";
@@ -60,46 +61,62 @@ export function useProfilSekolahForm() {
 
 export type ProfilSekolahForm = ReturnType<typeof useProfilSekolahForm>;
 
+type ProfilSekolahFieldsProps = {
+  form: ProfilSekolahForm;
+  /** Isian yang tampil sebelum jenjang, mis. nama panggilan. */
+  leading?: ReactNode;
+  /** Teks kecil di bawah pilihan jenjang. */
+  note?: ReactNode;
+  /** Desktop (>= 1024px): kiri nama + jenjang, kanan asal sekolah. */
+  twoColumn?: boolean;
+};
+
 /** Isian jenjang (tiga kartu) dan asal sekolah (cari + "Sekolah lain"). */
-export function ProfilSekolahFields({ form }: { form: ProfilSekolahForm }) {
+export function ProfilSekolahFields({ form, leading, note, twoColumn = false }: ProfilSekolahFieldsProps) {
   return (
-    <>
-      <JenjangPicker value={form.jenjang} onChange={form.setJenjang} error={form.galat.jenjang} />
-      {/* key: isian sekolah kosong lagi setiap kali jenjang diganti. */}
-      <SekolahPicker
-        key={form.jenjang ?? "kosong"}
-        jenjang={form.jenjang}
-        value={form.sekolah}
-        onChange={form.setSekolah}
-        error={form.galat.sekolah}
-      />
-      {form.sekolah === SEKOLAH_LAIN && (
-        <div className="flex flex-col gap-3">
-          <label htmlFor="sekolah-lain" className="text-sm font-semibold">
-            Nama sekolah
-          </label>
-          <input
-            id="sekolah-lain"
-            type="text"
-            autoComplete="organization"
-            maxLength={SEKOLAH_MAKS}
-            value={form.namaLain}
-            onChange={(e) => form.setNamaLain(e.target.value)}
-            placeholder="Contoh: SMPN 1 Pandaan"
-            aria-invalid={form.galat.namaLain ? true : undefined}
-            aria-describedby={form.galat.namaLain ? "sekolah-lain-help sekolah-lain-error" : "sekolah-lain-help"}
-            className="h-13 w-full rounded-xl border-[1.5px] border-ink bg-white px-4 text-base text-ink placeholder:text-subtle focus-visible:outline-offset-2 aria-invalid:border-danger"
-          />
-          <p id="sekolah-lain-help" className="text-sm text-muted">
-            3 sampai 60 huruf.
-          </p>
-          {form.galat.namaLain && (
-            <p id="sekolah-lain-error" className="text-sm font-medium text-danger">
-              {form.galat.namaLain}
+    <div className={`flex flex-col gap-5 ${twoColumn ? "lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-10" : ""}`}>
+      <div className="flex flex-col gap-5">
+        {leading}
+        <JenjangPicker value={form.jenjang} onChange={form.setJenjang} error={form.galat.jenjang} />
+        {note && <p className={`${helpClass} -mt-2`}>{note}</p>}
+      </div>
+      <div className="flex flex-col gap-5">
+        {/* key: isian sekolah kosong lagi setiap kali jenjang diganti. */}
+        <SekolahPicker
+          key={form.jenjang ?? "kosong"}
+          jenjang={form.jenjang}
+          value={form.sekolah}
+          onChange={form.setSekolah}
+          error={form.galat.sekolah}
+        />
+        {form.sekolah === SEKOLAH_LAIN && (
+          <div className="flex flex-col gap-2">
+            <label htmlFor="sekolah-lain" className={labelClass}>
+              Nama sekolah
+            </label>
+            <input
+              id="sekolah-lain"
+              type="text"
+              autoComplete="organization"
+              maxLength={SEKOLAH_MAKS}
+              value={form.namaLain}
+              onChange={(e) => form.setNamaLain(e.target.value)}
+              placeholder="Contoh: SMPN 1 Pandaan"
+              aria-invalid={form.galat.namaLain ? true : undefined}
+              aria-describedby={form.galat.namaLain ? "sekolah-lain-help sekolah-lain-error" : "sekolah-lain-help"}
+              className={inputClass}
+            />
+            <p id="sekolah-lain-help" className={helpClass}>
+              3 sampai 60 huruf.
             </p>
-          )}
-        </div>
-      )}
-    </>
+            {form.galat.namaLain && (
+              <p id="sekolah-lain-error" className={errorClass}>
+                {form.galat.namaLain}
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
