@@ -1,18 +1,9 @@
 import type { MatchStore, QueueEntry, ActiveDuel } from './MatchStore';
 
-/**
- * Implementasi in-memory MatchStore untuk MVP.
- * Untuk produksi skala besar, ganti dengan RedisMatchStore
- * tanpa mengubah logika duel sama sekali.
- */
 export class InMemoryMatchStore implements MatchStore {
-  /** Pemetaan ID pengguna ke entri antrean */
   private queue = new Map<string, QueueEntry>();
-  /** Pemetaan ID duel ke data duel aktif */
   private duels = new Map<string, ActiveDuel>();
-  /** Pemetaan ID pengguna ke ID duel yang sedang berjalan */
   private userDuel = new Map<string, string>();
-  /** Pemetaan ID pengguna ke ID socket koneksi */
   private userSocket = new Map<string, string>();
 
   enqueue(entry: QueueEntry) { this.queue.set(entry.userId, entry); }

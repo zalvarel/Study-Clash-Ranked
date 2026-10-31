@@ -62,10 +62,25 @@ export default function LoginScreen() {
     }
     setLoading("guest");
     try {
-      const { error } = await getSupabase().auth.signInAnonymously({
+      const supabase = getSupabase();
+      const { data, error } = await supabase.auth.signInAnonymously({
         options: { data: { display_name: nickname.trim(), jenjang: hasil.jenjang, sekolah: hasil.sekolah } },
       });
       if (error) throw error;
+
+      if (data.user) {
+        try {
+          await supabase.from("profiles").upsert({
+            id: data.user.id,
+            nickname: nickname.trim(),
+            jenjang: hasil.jenjang,
+            school: hasil.sekolah,
+          }, { onConflict: "id" });
+        } catch {
+          // Handled on server socket connect
+        }
+      }
+
       router.replace("/lobby");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Gagal masuk sebagai tamu.");

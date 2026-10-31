@@ -3,57 +3,103 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { displayName, readProfilSekolah, useCurrentUser } from "@/lib/auth";
-import { useDuel } from "@/lib/duel";
-import { findMatch, getDuelQuestions, type DuelMode } from "@/lib/api";
+import { readProfilSekolah, useCurrentUser } from "@/lib/auth";
+import { useDuel, type DuelMode } from "@/lib/duel";
+import { getSocket } from "@/lib/socket";
 import { formatClock } from "@/lib/use-now";
 import { ButtonLink, MobileColumn } from "@/components/ui";
+import { getSupabase } from "@/lib/supabase";
 
-/** Membaca ?mode=bot; ganti mode = mulai pencarian baru dari 00:00. */
 export default function CariScreen() {
-  const mode: DuelMode = useSearchParams().get("mode") === "bot" ? "bot" : "ranked";
-  return <Pencarian key={mode} mode={mode} />;
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode") === "bot" ? "bot" : searchParams.get("mode") === "create_room" ? "create_room" : "ranked";
+  const joinRoomCode = searchParams.get("room");
+  return <Pencarian key={`${mode}-${joinRoomCode}`} mode={mode as DuelMode | "create_room"} joinRoomCode={joinRoomCode} />;
 }
 
-function Pencarian({ mode }: { mode: DuelMode }) {
+function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joinRoomCode: string | null }) {
   const router = useRouter();
   const user = useCurrentUser();
-  const name = user ? displayName(user) : null;
-  const profil = user ? readProfilSekolah(user) : null;
-  const jenjang = profil?.jenjang;
-  const sekolah = profil?.sekolah;
   const { actions } = useDuel();
   const [seconds, setSeconds] = useState(0);
+  const [createdRoomCode, setCreatedRoomCode] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Timer naik dari 00:00.
+  const isBot = mode === "bot";
+  const isRoom = mode === "create_room" || joinRoomCode != null;
+
   useEffect(() => {
     const id = setInterval(() => setSeconds((s) => s + 1), 1000);
     return () => clearInterval(id);
   }, []);
 
-  // Cari lawan; begitu ketemu, langsung pindah ke duel.
   useEffect(() => {
-    if (!name || !jenjang || !sekolah) return;
-    const controller = new AbortController();
-    // Lawan selalu sejenjang dengan pemain.
-    findMatch(mode, jenjang, { signal: controller.signal })
-      .then(async (match) => {
-        const questions = await getDuelQuestions(match.duelId);
-        if (controller.signal.aborted) return;
-        actions.start({ name, jenjang, sekolah }, match, questions);
-        router.replace("/duel");
-      })
-      .catch((e: unknown) => {
-        if (!(e instanceof DOMException && e.name === "AbortError")) throw e;
-      });
-    return () => controller.abort();
-  }, [name, jenjang, sekolah, mode, actions, router]);
+    if (!user) return;
 
-  const isBot = mode === "bot";
+    let active = true;
+    const profil = readProfilSekolah(user);
+    const jenjang = profil?.jenjang;
+
+    async function connect() {
+      const { data } = await getSupabase().auth.getSession();
+      const token = data.session?.access_token;
+      if (!token || !active) return;
+
+      const socket = getSocket(token);
+
+      socket.on("room:created", ({ code }) => {
+        if (active) setCreatedRoomCode(code);
+      });
+
+      socket.on("match:found", (payload) => {
+        if (!active) return;
+        const duelMode: DuelMode = payload.isBot ? "bot" : mode === "create_room" ? "room" : (mode as DuelMode);
+        actions.setQueuing(payload.duelId, duelMode, payload.isBot, payload.opponent);
+        router.replace(`/duel?id=${payload.duelId}`);
+      });
+
+      socket.on("duel:start", (payload) => {
+        if (!active) return;
+        actions.setCountdown(payload.startsAt);
+      });
+
+      socket.on("error", (err) => {
+        if (active) setErrorMsg(err.message);
+      });
+
+      if (mode === "create_room") {
+        socket.emit("room:create");
+      } else if (joinRoomCode) {
+        socket.emit("room:join", { code: joinRoomCode });
+      } else {
+        socket.emit("queue:join", { subject: "math", isBot: isBot, jenjang });
+      }
+    }
+
+    connect();
+
+    return () => {
+      active = false;
+    };
+  }, [user, mode, joinRoomCode, isBot, actions, router]);
+
+  function handleCancel() {
+    getSupabase().auth.getSession().then(({ data }) => {
+      if (data.session?.access_token) {
+        const socket = getSocket(data.session.access_token);
+        socket.emit("queue:leave");
+        socket.off("room:created");
+        socket.off("match:found");
+        socket.off("duel:start");
+        socket.off("error");
+      }
+    });
+    actions.reset();
+    router.replace("/lobby");
+  }
 
   return (
     <MobileColumn className="p-6">
-      {/* Tengah (node 2:79) */}
       <div className="flex flex-1 flex-col items-center justify-center gap-5 py-8 text-center">
         <div className="relative size-[120px]">
           <img src="/figma/pemuat-lingkaran.svg" alt="" width={120} height={120} className="absolute inset-0" />
@@ -65,19 +111,34 @@ function Pencarian({ mode }: { mode: DuelMode }) {
             {formatClock(seconds)}
           </p>
         </div>
+
         <h1 className="text-2xl font-bold" aria-live="polite">
-          {isBot ? "Menyiapkan bot..." : "Mencari lawan..."}
+          {isBot ? "Menyiapkan bot..." : isRoom ? "Menunggu teman..." : "Mencari lawan..."}
         </h1>
+
+        {createdRoomCode && (
+          <div className="flex flex-col items-center gap-1">
+            <p className="text-sm text-muted">Kode room kamu</p>
+            <p className="text-4xl font-black tracking-widest">{createdRoomCode}</p>
+            <p className="text-xs text-muted">Bagikan ke temanmu</p>
+          </div>
+        )}
+
+        {errorMsg && (
+          <p role="alert" className="text-sm font-medium text-danger">{errorMsg}</p>
+        )}
+
         <p className="text-base leading-6 text-muted">
           {isBot
             ? "Sebentar lagi latihan dimulai. Latihan tidak mengubah rating."
-            : "Kami cari pemain dengan rating yang berdekatan denganmu, supaya duelnya adil."}
+            : isRoom
+              ? "Tunggu temanmu masuk dengan kode room di atas."
+              : "Kami cari pemain dengan rating yang berdekatan denganmu, supaya duelnya adil."}
         </p>
       </div>
 
-      {/* Bawah (node 2:88) */}
       <div className="flex flex-col gap-3">
-        {!isBot && (
+        {!isBot && !isRoom && (
           <>
             <p className="text-center text-sm leading-[21px] text-muted">
               Belum ketemu lawan? Kamu bisa latihan lawan bot sambil menunggu.
@@ -87,9 +148,12 @@ function Pencarian({ mode }: { mode: DuelMode }) {
             </ButtonLink>
           </>
         )}
-        <ButtonLink href="/lobby" variant="tautan">
+        <button
+          onClick={handleCancel}
+          className="inline-flex w-full items-center justify-center rounded-xl px-4 h-12 font-semibold text-ink underline underline-offset-4 hover:decoration-2"
+        >
           Batal
-        </ButtonLink>
+        </button>
       </div>
     </MobileColumn>
   );

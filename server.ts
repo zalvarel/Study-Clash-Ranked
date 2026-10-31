@@ -3,12 +3,7 @@ import { networkInterfaces } from "os";
 import { parse } from "url";
 import next from "next";
 import { Server } from "socket.io";
-import type {
-  ClientToServerEvents,
-  ServerToClientEvents,
-  InterServerEvents,
-  SocketData,
-} from "./src/shared/events";
+import type { ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData } from "./src/shared/events";
 import { db } from "./src/server/db";
 import { InMemoryMatchStore } from "./src/server/store/InMemoryMatchStore";
 import { registerSocketHandlers } from "./src/server/socketHandlers";
@@ -17,9 +12,7 @@ const dev = process.env.NODE_ENV !== "production";
 const hostname = "0.0.0.0";
 const port = parseInt(process.env.PORT || "3000", 10);
 
-console.log(
-  `> Initializing Next.js app in ${dev ? "development" : "production"} mode...`,
-);
+console.log(`> Initializing Next.js app in ${dev ? "development" : "production"} mode...`);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
@@ -49,12 +42,7 @@ async function bootstrap() {
     }
   });
 
-  const io = new Server<
-    ClientToServerEvents,
-    ServerToClientEvents,
-    InterServerEvents,
-    SocketData
-  >(server, {
+  const io = new Server<ClientToServerEvents, ServerToClientEvents, InterServerEvents, SocketData>(server, {
     cors: {
       origin: process.env.ALLOWED_ORIGINS?.split(",") || ["*"],
       credentials: true,
@@ -65,49 +53,47 @@ async function bootstrap() {
 
   const matchStore = new InMemoryMatchStore();
 
-  {
-    /** Autentikasi Socket.IO via token JWT Supabase */
-  }
   io.use(async (socket, nextMiddleware) => {
     try {
       const token = socket.handshake.auth?.token as string | undefined;
-      if (!token) {
-        return nextMiddleware(new Error("AUTH_REQUIRED"));
-      }
+      if (!token) return nextMiddleware(new Error("AUTH_REQUIRED"));
 
-      {
-        /** Verifikasi token user */
-      }
       const { data, error } = await db.auth.getUser(token);
-      if (error || !data.user) {
-        return nextMiddleware(new Error("AUTH_INVALID"));
-      }
+      if (error || !data.user) return nextMiddleware(new Error("AUTH_INVALID"));
 
       const userId = data.user.id;
+      const meta = data.user.user_metadata ?? {};
+      const displayName = meta.display_name ?? meta.full_name ?? meta.name ?? data.user.email?.split("@")[0] ?? "Player";
+      const jenjang = (meta.jenjang as "SD" | "SMP" | "SMA") ?? null;
+      const school = meta.sekolah ?? meta.school ?? null;
 
-      {
-        /** Ambil profil pengguna */
-      }
       const { data: profile } = await db
         .from("profiles")
         .select("id, nickname, rating")
         .eq("id", userId)
         .single();
 
+      await db.from("profiles").upsert({
+        id: userId,
+        nickname: profile?.nickname ?? displayName,
+        jenjang,
+        school,
+        rating: profile?.rating ?? 1000,
+      }, { onConflict: "id" });
+
       socket.data.userId = userId;
-      socket.data.nickname = profile?.nickname || "Player";
-      socket.data.rating = profile?.rating || 1000;
+      socket.data.nickname = profile?.nickname ?? displayName;
+      socket.data.rating = profile?.rating ?? 1000;
+      socket.data.jenjang = jenjang;
 
       nextMiddleware();
-    } catch (err) {
+    } catch {
       nextMiddleware(new Error("AUTH_ERROR"));
     }
   });
 
   io.on("connection", (socket) => {
-    console.log(
-      `[Socket.IO] Connected: ${socket.data.nickname} (${socket.data.userId})`,
-    );
+    console.log(`[Socket.IO] Connected: ${socket.data.nickname} (${socket.data.userId})`);
     registerSocketHandlers(io, socket, matchStore);
   });
 
@@ -117,12 +103,10 @@ async function bootstrap() {
     const networkUrls = getNetworkUrls(port);
     if (networkUrls.length > 0) {
       networkUrls.forEach((url, i) => {
-        console.log(`  - ${i === 0 ? "Network:" : "         "} ${url}`);
+        console.log(`  - ${i === 0 ? "Network:" : "        "} ${url}`);
       });
-    } else {
-      console.log(`  - Network: (tidak ada koneksi jaringan lokal terdeteksi)`);
     }
-    console.log(`> Ready for connections!`);
+    console.log(`> Ready!`);
   });
 }
 

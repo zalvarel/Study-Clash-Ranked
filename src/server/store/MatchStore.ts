@@ -1,5 +1,4 @@
 /**
- * src/server/store/MatchStore.ts
  * Interface abstrak untuk menyimpan state duel di memori.
  * Ganti implementasinya dengan Redis tanpa mengubah logika duel.
  */
@@ -11,6 +10,7 @@ export interface QueueEntry {
   socketId: string;
   joinedAt: Date;
   subject: string;
+  jenjang?: string;
 }
 
 export interface DuelPlayer {
@@ -26,7 +26,6 @@ export interface ActiveDuel {
   mode: 'ranked' | 'bot' | 'room';
   subject: string;
   player1: DuelPlayer;
-  /** null jika lawan adalah bot */
   player2: DuelPlayer | null;
   botLevel: number | null;
   questions: QuestionRow[];
@@ -37,7 +36,6 @@ export interface ActiveDuel {
   currentDeadlineAt: Date | null;
   questionTimers: Map<string, ReturnType<typeof setTimeout>>;
   answeredThisRound: Set<string>;
-  /** Riwayat jawaban di memori, dipakai untuk review di akhir duel tanpa query DB */
   answerLog: Array<{ userId: string; position: number; answer: string | null; isCorrect: boolean }>;
   disconnectedAt: Map<string, Date>;
   p1RatingBefore: number;
@@ -55,20 +53,17 @@ export interface QuestionRow {
 }
 
 export interface MatchStore {
-  /** Operasi antrean matchmaking */
   enqueue(entry: QueueEntry): void;
   dequeue(userId: string): void;
   getQueue(subject: string): QueueEntry[];
   isInQueue(userId: string): boolean;
 
-  /** Operasi data duel aktif */
   createDuel(duel: ActiveDuel): void;
   getDuel(duelId: string): ActiveDuel | null;
   updateDuel(duelId: string, updates: Partial<ActiveDuel>): void;
   deleteDuel(duelId: string): void;
   getActiveDuelByUser(userId: string): ActiveDuel | null;
 
-  /** Pemetaan ID pengguna ke ID socket untuk reconnect */
   setUserSocket(userId: string, socketId: string): void;
   getUserSocket(userId: string): string | null;
   removeUserSocket(userId: string): void;

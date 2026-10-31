@@ -3,20 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "bun server.ts",
     "build": "next build",
-    "start": "next start",
-    "lint": "eslint",
-    "verifikasi:soal": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/verifikasi-soal.mjs"
+    "start": "NODE_ENV=production bun server.ts",
+    "lint": "eslint"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
+    "dotenv": "^16.0.0",
+    "katex": "^0.16.0",
     "next": "16.4.3",
     "react": "19.3.0",
-    "react-dom": "19.3.0"
+    "react-dom": "19.3.0",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4",
+    "zod": "^4.6.7",
+    "zustand": "^5.0.16"
   },
   "devDependencies": {
     "@tailwindcss/turbopack": "^4",
+    "@types/katex": "^0.16.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

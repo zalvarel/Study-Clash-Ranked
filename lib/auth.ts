@@ -29,8 +29,23 @@ export function readProfilSekolah(user: User): ProfilSekolah | null {
 
 /** Simpan jenjang dan sekolah ke user metadata (dipakai /lengkapi). */
 export async function saveProfilSekolah(profil: ProfilSekolah): Promise<void> {
-  const { error } = await getSupabase().auth.updateUser({ data: profil });
+  const supabase = getSupabase();
+  const { data, error } = await supabase.auth.updateUser({ data: profil });
   if (error) throw error;
+
+  if (data.user) {
+    const name = displayName(data.user);
+    try {
+      await supabase.from("profiles").upsert({
+        id: data.user.id,
+        nickname: name,
+        jenjang: profil.jenjang,
+        school: profil.sekolah,
+      }, { onConflict: "id" });
+    } catch {
+      // Ignored if RLS or network delays; server.ts socket auth will also upsert
+    }
+  }
 }
 
 /** Pengguna dari sesi yang tersimpan, tanpa redirect. */

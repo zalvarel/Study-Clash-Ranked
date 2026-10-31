@@ -1,78 +1,120 @@
 /**
- * Satu-satunya pintu akses data untuk layar.
- *
- * Saat ini semua fungsi meneruskan ke lib/mock. Untuk pindah ke Supabase,
- * ganti isi fungsi di file ini saja; tanda tangan dan tipenya dipertahankan.
+ * Pintu akses data untuk layar.
+ * Fungsi-fungsi yang sebelumnya mock kini terhubung ke Supabase / Socket.IO.
  */
-import * as mock from "@/lib/mock";
-import type {
-  DuelMode,
-  DuelQuestion,
-  DuelResult,
-  DuelStatus,
-  Explanation,
-  Jenjang,
-  Leaderboard,
-  Match,
-  Profile,
-} from "@/lib/types";
+import { getSupabase } from "@/lib/supabase";
+import { readProfilSekolah } from "@/lib/auth";
+import type { Jenjang } from "@/lib/duel";
 
-export type * from "@/lib/types";
+export type { Jenjang };
+export type DuelMode = "ranked" | "bot" | "room";
 
-export { cariSekolah, DAFTAR_JENJANG, JENJANG_LABEL, SEKOLAH } from "@/lib/data/sekolah";
+export type PlayerSummary = {
+  name: string;
+  rating: number;
+  jenjang: Jenjang;
+  sekolah: string;
+};
 
-/** Aturan duel. */
-export const DUEL_RULES = {
-  /** Waktu per soal dalam detik, per jenjang (SD 30, SMP 25, SMA 20). */
-  secondsPerQuestion: mock.SECONDS_PER_QUESTION,
-} as const;
+export type Profile = PlayerSummary & { rank: number };
 
-/** Nama, rating, jenjang, sekolah, dan peringkat pemain yang sedang masuk. */
-export function getProfile(): Promise<Profile> {
-  return mock.getProfile();
+export type LeaderboardEntry = PlayerSummary & { rank: number };
+
+export type Leaderboard = {
+  jenjang: Jenjang | null;
+  entries: LeaderboardEntry[];
+  me: LeaderboardEntry;
+};
+
+export { cariSekolah, DAFTAR_JENJANG, JENJANG_LABEL, isJenjang } from "@/lib/data/sekolah";
+
+export async function getProfile(): Promise<Profile> {
+  const supabase = getSupabase();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+  if (!user) throw new Error("Sesi tidak ditemukan.");
+
+  const profil = readProfilSekolah(user);
+  if (!profil) throw new Error("Profil belum lengkap.");
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("rating, games_played")
+    .eq("id", user.id)
+    .maybeSingle();
+
+  const currentRating = profile?.rating ?? 1000;
+
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .gt("rating", currentRating);
+
+  const meta = user.user_metadata ?? {};
+  const name = meta.display_name ?? meta.full_name ?? meta.name ?? user.email?.split("@")[0] ?? "Pemain";
+
+  return {
+    name,
+    rating: currentRating,
+    jenjang: profil.jenjang,
+    sekolah: profil.sekolah,
+    rank: (count ?? 0) + 1,
+  };
 }
 
-/**
- * Papan peringkat: pemain teratas (urut dari rating tertinggi) dan posisi
- * pemain sendiri. Tanpa `jenjang` = semua jenjang.
- */
-export function getLeaderboard(jenjang?: Jenjang): Promise<Leaderboard> {
-  return mock.getLeaderboard(jenjang);
-}
+export async function getLeaderboard(jenjang?: Jenjang): Promise<Leaderboard> {
+  const supabase = getSupabase();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData.session?.user;
+  const profil = user ? readProfilSekolah(user) : null;
+  const meta = user?.user_metadata ?? {};
+  const myName = meta.display_name ?? meta.full_name ?? meta.name ?? user?.email?.split("@")[0] ?? "Pemain";
 
-/**
- * Cari lawan sejenjang. Promise selesai saat lawan ditemukan.
- * Batalkan pencarian lewat `signal` (ditolak dengan AbortError).
- */
-export function findMatch(mode: DuelMode, jenjang: Jenjang, options: { signal?: AbortSignal } = {}): Promise<Match> {
-  return mock.findMatch(mode, jenjang, options.signal);
-}
+  let entries: LeaderboardEntry[] = [];
+  let myRating = 1000;
+  let myRank = 1;
 
-/** Soal-soal duel (5 soal acak dari bank jenjang duel), urut, tanpa kunci jawaban. */
-export function getDuelQuestions(duelId: string): Promise<DuelQuestion[]> {
-  return mock.getDuelQuestions(duelId);
-}
+  try {
+    let query = supabase.from("leaderboard_global").select("id, nickname, jenjang, school, rating, rank").order("rank");
+    if (jenjang) query = query.eq("jenjang", jenjang);
+    const { data: rows } = await query.limit(10);
 
-/** Kirim jawaban pemain (indeks opsi 0-3). Hanya jawaban pertama per soal yang dihitung. */
-export function submitAnswer(duelId: string, questionIndex: number, choice: number): Promise<void> {
-  return mock.submitAnswer(duelId, questionIndex, choice);
-}
+    if (rows && rows.length > 0) {
+      entries = rows.map((r) => ({
+        name: r.nickname || "Pemain",
+        rating: r.rating || 1000,
+        jenjang: (r.jenjang ?? profil?.jenjang ?? "SMA") as Jenjang,
+        sekolah: r.school ?? "",
+        rank: r.rank || 1,
+      }));
+    }
 
-/**
- * Keadaan soal yang sedang berjalan: apakah lawan sudah menjawab, dan skor
- * dari soal-soal sebelumnya. `elapsedMs` = waktu soal yang sudah terpakai
- * menurut klien (di luar jeda); dipakai mock untuk mensimulasikan lawan.
- */
-export function getDuelStatus(duelId: string, questionIndex: number, elapsedMs: number): Promise<DuelStatus> {
-  return mock.getDuelStatus(duelId, questionIndex, elapsedMs);
-}
+    if (user?.id) {
+      const { data: myRow } = await supabase
+        .from("leaderboard_global")
+        .select("rating, rank")
+        .eq("id", user.id)
+        .maybeSingle();
 
-/** Hasil akhir duel, termasuk perubahan rating. Panggil setelah soal terakhir selesai. */
-export function getDuelResult(duelId: string): Promise<DuelResult> {
-  return mock.getDuelResult(duelId);
-}
+      if (myRow) {
+        myRating = myRow.rating ?? 1000;
+        myRank = myRow.rank ?? 1;
+      } else {
+        const { data: p } = await supabase.from("profiles").select("rating").eq("id", user.id).maybeSingle();
+        if (p?.rating) myRating = p.rating;
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to load leaderboard from database:", err);
+  }
 
-/** Pembahasan untuk soal yang dijawab salah atau tidak dijawab. */
-export function getExplanations(duelId: string): Promise<Explanation[]> {
-  return mock.getExplanations(duelId);
+  const me: LeaderboardEntry = {
+    name: myName,
+    rating: myRating,
+    jenjang: profil?.jenjang ?? "SMA",
+    sekolah: profil?.sekolah ?? "",
+    rank: myRank,
+  };
+
+  return { jenjang: jenjang ?? null, entries, me };
 }

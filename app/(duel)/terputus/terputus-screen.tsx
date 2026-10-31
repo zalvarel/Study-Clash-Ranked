@@ -23,8 +23,7 @@ export default function TerputusScreen() {
       stillOffline={stillOffline}
       onRetry={() => {
         if (!navigator.onLine) return setStillOffline(true);
-        actions.resume();
-        router.replace("/duel");
+        router.replace(duel?.duelId ? `/duel?id=${duel.duelId}` : "/duel");
       }}
       onLeave={() => {
         actions.reset();

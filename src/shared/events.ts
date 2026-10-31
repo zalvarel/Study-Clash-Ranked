@@ -1,11 +1,8 @@
 /**
- * Event WebSocket dan skema Zod
- * Aman diimpor klien dan server
+ * Event WebSocket dan skema Zod — aman diimpor klien dan server.
  */
 
 import { z } from 'zod';
-
-{/** Primitif bersama */}
 
 export const McqOptionSchema = z.object({
   id: z.string(),
@@ -39,11 +36,10 @@ export const ReviewItemSchema = z.object({
 });
 export type ReviewItem = z.infer<typeof ReviewItemSchema>;
 
-{/** Payload Klien ke Server */}
-
 export const QueueJoinPayloadSchema = z.object({
   subject: z.string().default('math'),
   isBot: z.boolean().optional().default(false),
+  jenjang: z.enum(['SD', 'SMP', 'SMA']).optional(),
 });
 export type QueueJoinPayload = z.infer<typeof QueueJoinPayloadSchema>;
 
@@ -64,8 +60,6 @@ export const DuelRejoinPayloadSchema = z.object({
 });
 export type DuelRejoinPayload = z.infer<typeof DuelRejoinPayloadSchema>;
 
-{/** Payload Server ke Klien */}
-
 export const MatchFoundPayloadSchema = z.object({
   duelId: z.string().uuid(),
   opponent: OpponentInfoSchema,
@@ -74,7 +68,6 @@ export const MatchFoundPayloadSchema = z.object({
 export type MatchFoundPayload = z.infer<typeof MatchFoundPayloadSchema>;
 
 export const DuelStartPayloadSchema = z.object({
-  /** Timestamp server untuk hitung mundur bersama */
   startsAt: z.string().datetime(),
 });
 export type DuelStartPayload = z.infer<typeof DuelStartPayloadSchema>;
@@ -84,7 +77,6 @@ export const DuelQuestionPayloadSchema = z.object({
   body: z.string(),
   options: z.array(McqOptionSchema).optional(),
   type: QuestionTypeSchema,
-  /** Timestamp batas waktu server */
   deadlineAt: z.string().datetime(),
   timeLimitSec: z.number().int().positive(),
   totalQuestions: z.number().int().positive(),
@@ -125,8 +117,6 @@ export const RoomCreatedPayloadSchema = z.object({
 });
 export type RoomCreatedPayload = z.infer<typeof RoomCreatedPayloadSchema>;
 
-{/** Tipe Socket.IO */}
-
 export interface ClientToServerEvents {
   'queue:join': (payload: QueueJoinPayload) => void;
   'queue:leave': () => void;
@@ -148,10 +138,11 @@ export interface ServerToClientEvents {
   'error': (payload: ServerErrorPayload) => void;
 }
 
-export interface InterServerEvents {}
+export type InterServerEvents = Record<string, never>;
 
 export interface SocketData {
   userId: string;
   nickname: string;
   rating: number;
+  jenjang: 'SD' | 'SMP' | 'SMA' | null;
 }
