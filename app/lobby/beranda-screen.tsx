@@ -150,40 +150,43 @@ export default function BerandaScreen() {
           {/** Buat room baru */}
           <Button onClick={handleBuatRoom}>Buat Room Baru</Button>
 
+          <div className="relative flex items-center justify-center my-1">
+            <div className="border-t border-line w-full" />
+            <span className="bg-white px-3 text-xs uppercase text-muted font-medium absolute">atau</span>
+          </div>
+
           {/** Gabung room dengan kode */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
             <label htmlFor="room-code" className="text-sm font-semibold">
-              Atau masukkan kode room
+              Masukkan kode room teman
             </label>
-            <div className="flex gap-2">
-              <input
-                ref={inputRef}
-                id="room-code"
-                type="text"
-                maxLength={4}
-                value={roomCode}
-                onChange={(e) => {
-                  setRoomCode(e.target.value.toUpperCase());
-                  setRoomError(null);
-                }}
-                onKeyDown={(e) => { if (e.key === "Enter") handleGabungRoom(); }}
-                placeholder="ABCD"
-                aria-invalid={roomError ? true : undefined}
-                aria-describedby={roomError ? "room-code-error" : undefined}
-                className="h-13 flex-1 rounded-xl border-[1.5px] border-ink bg-white px-4 text-center text-base font-bold uppercase tracking-widest placeholder:text-subtle placeholder:font-normal placeholder:tracking-normal focus-visible:outline-offset-2 aria-invalid:border-danger"
-              />
-              <Button
-                onClick={handleGabungRoom}
-                className="h-13 w-auto flex-none px-5"
-              >
-                Gabung
-              </Button>
-            </div>
+            <input
+              ref={inputRef}
+              id="room-code"
+              type="text"
+              maxLength={4}
+              value={roomCode}
+              onChange={(e) => {
+                setRoomCode(e.target.value.toUpperCase());
+                setRoomError(null);
+              }}
+              onKeyDown={(e) => { if (e.key === "Enter") handleGabungRoom(); }}
+              placeholder="Contoh: ABCD"
+              aria-invalid={roomError ? true : undefined}
+              aria-describedby={roomError ? "room-code-error" : undefined}
+              className="h-14 w-full rounded-xl border-[1.5px] border-ink bg-white px-4 text-center text-lg font-bold uppercase tracking-widest placeholder:text-subtle placeholder:font-normal placeholder:tracking-normal focus-visible:outline-offset-2 aria-invalid:border-danger"
+            />
             {roomError && (
-              <p id="room-code-error" role="alert" className="text-sm font-medium text-danger">
+              <p id="room-code-error" role="alert" className="text-sm font-medium text-danger text-center">
                 {roomError}
               </p>
             )}
+            <Button
+              variant="sekunder"
+              onClick={handleGabungRoom}
+            >
+              Gabung Room
+            </Button>
           </div>
 
           <Button variant="tautan" onClick={closeModal}>
