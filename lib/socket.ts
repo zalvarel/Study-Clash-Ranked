@@ -2,15 +2,22 @@ import { io, type Socket } from "socket.io-client";
 import type { ClientToServerEvents, ServerToClientEvents } from "@/src/shared/events";
 
 let socket: Socket<ServerToClientEvents, ClientToServerEvents> | null = null;
+let currentToken: string | null = null;
 
 export function getSocket(token: string): Socket<ServerToClientEvents, ClientToServerEvents> {
-  if (socket && socket.connected) return socket;
+  if (socket && currentToken === token) {
+    if (!socket.connected && !socket.active) {
+      socket.connect();
+    }
+    return socket;
+  }
 
   if (socket) {
     socket.disconnect();
     socket = null;
   }
 
+  currentToken = token;
   const serverUrl =
     typeof window !== "undefined" ? window.location.origin : "http://localhost:3000";
 
@@ -29,5 +36,6 @@ export function disconnectSocket() {
   if (socket) {
     socket.disconnect();
     socket = null;
+    currentToken = null;
   }
 }

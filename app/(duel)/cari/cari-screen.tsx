@@ -37,6 +37,7 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
     if (!user) return;
 
     let active = true;
+    let matchFound = false;
     const profil = readProfilSekolah(user);
     const jenjang = profil?.jenjang;
 
@@ -53,6 +54,7 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
 
       socket.on("match:found", (payload) => {
         if (!active) return;
+        matchFound = true;
         const duelMode: DuelMode = payload.isBot ? "bot" : mode === "create_room" ? "room" : (mode as DuelMode);
         actions.setMatchFound(payload.duelId, duelMode, payload.isBot, payload.opponent);
         router.replace(`/duel?id=${payload.duelId}`);
@@ -83,6 +85,9 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
       getSupabase().auth.getSession().then(({ data }) => {
         if (data.session?.access_token) {
           const socket = getSocket(data.session.access_token);
+          if (!matchFound) {
+            socket.emit("queue:leave");
+          }
           socket.off("room:created");
           socket.off("match:found");
           socket.off("duel:start");
@@ -90,7 +95,8 @@ function Pencarian({ mode, joinRoomCode }: { mode: DuelMode | "create_room"; joi
         }
       });
     };
-  }, [user, mode, joinRoomCode, isBot, actions, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally depend on user?.id to avoid queue re-subscription on auth refresh
+  }, [user?.id, mode, joinRoomCode, isBot, actions, router]);
 
   function handleCancel() {
     getSupabase().auth.getSession().then(({ data }) => {
