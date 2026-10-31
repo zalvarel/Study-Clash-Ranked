@@ -11,14 +11,17 @@ type OptionButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children
    * keyboard tidak hilang setelah memilih.
    */
   locked?: boolean;
+  /** Petunjuk tombol keyboard, tampil di desktop (mis. "tombol 1"). */
+  hint?: string;
 };
 
-/** Opsi jawaban: Opsi/Biasa (node 2:11) dan Opsi/Terpilih (node 2:15). */
+/** Opsi jawaban duel. Terpilih = bingkai dan badge ungu. */
 export function OptionButton({
   letter,
   text,
   selected = false,
   locked = false,
+  hint,
   className = "",
   onClick,
   ...props
@@ -29,17 +32,17 @@ export function OptionButton({
       aria-pressed={selected}
       aria-disabled={locked || undefined}
       onClick={locked ? undefined : onClick}
-      className={`flex min-h-14 w-full items-center gap-3.5 rounded-xl px-4 py-2 text-left text-lg text-ink transition-colors aria-disabled:cursor-default ${
+      className={`flex min-h-16 w-full items-center gap-3.5 rounded-tile px-4 py-2.5 text-left text-lg font-bold text-ink transition-colors aria-disabled:cursor-default sm:min-h-[70px] ${
         selected
-          ? "border-2 border-ink bg-surface font-bold"
-          : "border-[1.5px] border-line bg-white font-semibold not-aria-disabled:hover:border-ink not-aria-disabled:hover:bg-surface aria-disabled:text-muted"
+          ? "border-2 border-violet bg-violet-50"
+          : "border-[1.5px] border-line bg-white not-aria-disabled:hover:border-violet not-aria-disabled:hover:bg-violet-50/50 aria-disabled:text-muted"
       } ${className}`}
       {...props}
     >
       <span
         aria-hidden="true"
-        className={`flex size-7 shrink-0 items-center justify-center rounded-full text-sm font-bold ${
-          selected ? "bg-ink text-white" : "bg-surface text-ink"
+        className={`flex size-[34px] shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${
+          selected ? "bg-violet text-white" : "bg-surface text-muted"
         }`}
       >
         {letter}
@@ -48,6 +51,11 @@ export function OptionButton({
       <span className="min-w-0 flex-1">
         <MathText text={text} />
       </span>
+      {hint && (
+        <span aria-hidden="true" className="hidden shrink-0 text-xs font-semibold text-muted lg:inline">
+          {hint}
+        </span>
+      )}
     </button>
   );
 }
