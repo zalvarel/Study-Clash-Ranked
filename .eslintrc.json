@@ -1,3 +1,26 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals"],
+  "overrides": [
+    {
+      "files": [
+        "src/app/**/*.{ts,tsx}",
+        "src/components/**/*.{ts,tsx}",
+        "src/lib/**/*.{ts,tsx}",
+        "src/store/**/*.{ts,tsx}"
+      ],
+      "rules": {
+        "no-restricted-imports": [
+          "error",
+          {
+            "patterns": [
+              {
+                "group": ["**/server/**", "@/server/**", "../server/**", "../../server/**"],
+                "message": "Server-only code must not be imported in client code. Answer keys, Supabase admin key, and duel engine must remain in src/server/."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }
