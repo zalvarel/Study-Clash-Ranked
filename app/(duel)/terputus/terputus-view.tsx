@@ -23,8 +23,8 @@ export function TerputusView({ onRetry, onLeave, stillOffline }: TerputusViewPro
         >
           <Icon name="wifiMati" size={38} />
         </span>
-        <h1 className="text-[28px] leading-tight font-extrabold">Koneksi terputus</h1>
-        <p className="max-w-[380px] text-base leading-6 text-muted">
+        <h1 className="text-[1.75rem] leading-tight font-extrabold">Koneksi terputus</h1>
+        <p className="max-w-[23.75rem] text-base leading-6 text-muted">
           Duel dijeda sebentar. Kami mencoba menyambungkan kamu lagi. Jawaban yang sudah terkirim tetap aman.
         </p>
         <p role="alert" className="min-h-5 text-sm font-semibold text-danger">

@@ -3,6 +3,9 @@ import type { ReactNode } from "react";
 import { Icon, type IconName } from "./Icon";
 import { Brand } from "./Logo";
 
+/** Padding samping yang mengikuti lebar layar (>= 1024px). Dipakai navbar atas dan kerangka halaman. */
+export const PADDING_SHELL = "lg:px-[clamp(2rem,4vw,5rem)]";
+
 export type NavTab = "beranda" | "peringkat" | "profil";
 
 const tabs: { id: NavTab; href: string; label: string; icon: IconName }[] = [
@@ -18,7 +21,7 @@ export function BottomNav({ active }: { active: NavTab }) {
       aria-label="Navigasi utama"
       className="sticky bottom-0 z-10 border-t border-line bg-white pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
-      <ul className="mx-auto flex max-w-[560px] gap-2 px-4 py-2.5 sm:px-6">
+      <ul className="mx-auto flex max-w-[35rem] gap-2 px-4 py-2.5 sm:px-6">
         {tabs.map((tab) => {
           const isActive = tab.id === active;
           return (
@@ -45,7 +48,7 @@ export function BottomNav({ active }: { active: NavTab }) {
 export function TopNav({ active, right }: { active?: NavTab; right?: ReactNode }) {
   return (
     <header className="sticky top-0 z-10 hidden border-b border-line bg-white lg:block">
-      <div className="mx-auto flex h-[72px] max-w-[1200px] items-center gap-6 px-8">
+      <div className={`mx-auto flex h-[4.5rem] max-w-[120rem] items-center gap-6 ${PADDING_SHELL}`}>
         {/* Tanpa tab (mis. saat duel): logo bukan tautan supaya tidak keluar tanpa sengaja. */}
         {active ? (
           <Link href="/lobby" className="rounded-xl">
@@ -64,7 +67,7 @@ export function TopNav({ active, right }: { active?: NavTab; right?: ReactNode }
                     <Link
                       href={tab.href}
                       aria-current={isActive ? "page" : undefined}
-                      className={`flex h-[42px] items-center gap-2 rounded-input px-5 text-[15px] font-bold transition-colors ${
+                      className={`flex h-[2.625rem] items-center gap-2 rounded-input px-5 text-[0.9375rem] font-bold transition-colors ${
                         isActive ? "bg-violet-50 text-violet" : "text-muted hover:bg-surface hover:text-ink"
                       }`}
                     >

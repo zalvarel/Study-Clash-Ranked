@@ -40,7 +40,7 @@ export default function BantuanPage() {
         >
           <Icon name="kembali" size={20} />
         </Link>
-        <h1 className="text-[26px] leading-tight font-extrabold">Bantuan dan privasi</h1>
+        <h1 className="text-[1.625rem] leading-tight font-extrabold">Bantuan dan privasi</h1>
       </div>
 
       <section aria-labelledby="bantuan-judul" className="flex flex-col gap-3">
@@ -51,7 +51,7 @@ export default function BantuanPage() {
         <dl className="flex flex-col gap-3">
           {BANTUAN.map((b) => (
             <div key={b.judul} className="rounded-tile border-[1.5px] border-line p-4">
-              <dt className="text-[15px] font-extrabold">{b.judul}</dt>
+              <dt className="text-[0.9375rem] font-extrabold">{b.judul}</dt>
               <dd className="mt-1 text-sm leading-6 text-muted">{b.isi}</dd>
             </div>
           ))}

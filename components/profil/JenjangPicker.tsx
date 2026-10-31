@@ -8,7 +8,7 @@ const KETERANGAN: Record<Jenjang, string> = {
   SMA: "Kelas 10–12",
 };
 
-/** Warna per jenjang: SD oranye, SMP ungu, SMA/SMK hitam. */
+/** Warna per jenjang: SD oranye, SMP/MTs ungu, SMA/SMK hitam. */
 const WARNA: Record<Jenjang, { dot: string; teks: string; aktif: string; ket: string; centang: string }> = {
   SD: {
     dot: "bg-orange",
@@ -51,7 +51,7 @@ export function JenjangPicker({ value, onChange, error }: JenjangPickerProps) {
           return (
             <label
               key={j}
-              className={`relative flex h-[84px] cursor-pointer flex-col justify-end rounded-button p-2.5 transition-colors min-[380px]:p-3 has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-violet sm:h-[96px] ${
+              className={`relative flex h-[5.25rem] cursor-pointer flex-col justify-end rounded-button p-2.5 transition-colors min-[380px]:p-3 has-focus-visible:outline-2 has-focus-visible:outline-offset-3 has-focus-visible:outline-violet sm:h-[6rem] ${
                 aktif
                   ? w.aktif
                   : `border-[1.5px] bg-white hover:border-zinc-400 ${error ? "border-danger" : "border-line"}`
@@ -76,11 +76,11 @@ export function JenjangPicker({ value, onChange, error }: JenjangPickerProps) {
                 </span>
               )}
               <span
-                className={`text-[15px] leading-tight font-extrabold whitespace-nowrap min-[380px]:text-[17px] sm:text-xl ${w.teks}`}
+                className={`text-sm leading-tight font-extrabold whitespace-nowrap min-[380px]:text-base min-[420px]:text-[1.0625rem] sm:text-xl ${w.teks}`}
               >
                 {JENJANG_LABEL[j].replace(" / ", "/")}
               </span>
-              <span className={`mt-0.5 text-[11px] font-medium sm:text-xs ${aktif ? w.ket : "text-muted"}`}>
+              <span className={`mt-0.5 text-[0.6875rem] font-medium sm:text-xs ${aktif ? w.ket : "text-muted"}`}>
                 {KETERANGAN[j]}
               </span>
             </label>

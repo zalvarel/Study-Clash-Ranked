@@ -32,18 +32,21 @@ const PATHS = {
   kalender: "M8 2v4M16 2v4M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM3 10h18",
   buku: "M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15zM20 17v5H6.5A2.5 2.5 0 0 1 4 19.5",
   bendera: "M4 22V4M4 4h13l-2 4 2 4H4",
+  blokir: "M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM4.9 4.9l14.2 14.2",
 } as const;
 
 export type IconName = keyof typeof PATHS;
 
-type IconProps = Omit<SVGProps<SVGSVGElement>, "name"> & { name: IconName; size?: number };
+type IconProps = Omit<SVGProps<SVGSVGElement>, "name"> & { name: IconName; /** Ukuran dalam px pada root 16px (dipakai sebagai rem). */ size?: number };
 
 /** Ikon garis sederhana; warna mengikuti currentColor. Selalu dekoratif (aria-hidden). */
-export function Icon({ name, size = 22, strokeWidth = 2, ...props }: IconProps) {
+export function Icon({ name, size = 22, strokeWidth = 2, style, ...props }: IconProps) {
+  const rem = `${size / 16}rem`;
   return (
     <svg
       width={size}
       height={size}
+      style={{ width: rem, height: rem, ...style }}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"

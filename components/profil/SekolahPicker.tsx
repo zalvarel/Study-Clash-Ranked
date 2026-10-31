@@ -127,7 +127,7 @@ export function SekolahPicker({ jenjang, value, onChange, error }: SekolahPicker
                 pilih(nama);
               }}
               onMouseEnter={() => setActive(i)}
-              className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-[10px] px-3 py-2 text-[15px] ${
+              className={`flex min-h-11 cursor-pointer items-center justify-between gap-3 rounded-[0.625rem] px-3 py-2 text-[0.9375rem] ${
                 i === active || terpilih ? "bg-violet-50 text-violet-ink" : "text-ink"
               } ${lain ? "font-bold text-violet" : "font-semibold"}`}
             >

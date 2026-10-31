@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 type AvatarProps = {
   name: string;
   /** "violet" = kamu, "orange" = lawan, "ink" = lainnya. */
@@ -14,8 +16,8 @@ export function Avatar({ name, tone = "violet", size = 44, className = "" }: Ava
   return (
     <span
       aria-hidden="true"
-      className={`flex shrink-0 items-center justify-center rounded-full font-extrabold text-white ${TONES[tone]} ${className}`}
-      style={{ width: size, height: size, fontSize: Math.round(size * 0.4) }}
+      className={`flex size-(--av) shrink-0 items-center justify-center rounded-full text-[calc(var(--av)*0.4)] font-extrabold text-white ${TONES[tone]} ${className}`}
+      style={{ "--av": `${size / 16}rem` } as CSSProperties}
     >
       {huruf}
     </span>

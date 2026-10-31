@@ -2,8 +2,10 @@
 
 /*
  * Token desain Study Clash Ranked (lihat design-ref/README.md).
- * Breakpoint memakai bawaan Tailwind: sm = 640px (kolom tengah 560px),
- * lg = 1024px (desktop: navbar atas, grid).
+ * Breakpoint memakai bawaan Tailwind (dalam rem, tidak ikut ukuran root):
+ * < 640 ponsel, sm 640 (kolom tengah), lg 1024 (navbar atas, grid),
+ * min-[1440px] jarak grid lebih lega, min-[1600px] hiasan kapsul di sisi kosong.
+ * Semua ukuran memakai rem supaya ikut skala root di bawah.
  */
 @theme inline {
   /* Kosongkan palet bawaan supaya hanya warna desain yang dipakai. */
@@ -43,11 +45,11 @@
   --color-amber-bg: #fef3c7;
 
   /* Radius. */
-  --radius-card: 28px;
-  --radius-card-sm: 24px;
-  --radius-tile: 18px;
-  --radius-button: 16px;
-  --radius-input: 14px;
+  --radius-card: 1.75rem;
+  --radius-card-sm: 1.5rem;
+  --radius-tile: 1.125rem;
+  --radius-button: 1rem;
+  --radius-input: 0.875rem;
 
   /* Bayangan. */
   --shadow-primary: 0 10px 22px -10px rgb(79 70 229 / 0.7);
@@ -62,13 +64,27 @@
  * tidak bergantung pada prefers-color-scheme.
  */
 @layer base {
+  /*
+   * Skala root fluid: 15px di ponsel, sekitar 16-17px di laptop, maks 18px di layar besar.
+   * Bagian px ikut zoom browser, bagian vw mengikuti lebar jendela.
+   */
   html {
     color-scheme: light;
     background-color: #ffffff;
+    font-size: clamp(15px, 0.3vw + 13.5px, 18px);
   }
 
   body {
     @apply bg-white font-sans text-ink antialiased;
+    /* Hiasan di tepi tidak boleh membuat gulir horizontal. */
+    overflow-x: clip;
+  }
+
+  /* Minimal 16px supaya Safari iOS tidak memperbesar halaman saat kolom difokus. */
+  input,
+  textarea,
+  select {
+    font-size: max(1rem, 16px);
   }
 
   /* Cincin fokus keyboard yang konsisten di semua elemen interaktif. */

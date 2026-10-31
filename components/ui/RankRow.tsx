@@ -31,7 +31,7 @@ export function RankRow({ rank, name, rating, school, isMe = false, jenjang }: R
       }`}
     >
       <span
-        className={`flex h-[30px] min-w-[30px] shrink-0 items-center justify-center rounded-[10px] px-1.5 text-sm font-extrabold ${
+        className={`flex h-[1.875rem] min-w-[1.875rem] shrink-0 items-center justify-center rounded-[0.625rem] px-1.5 text-sm font-extrabold ${
           BADGE_TIGA_BESAR[rank] ?? (isMe ? "bg-violet text-white" : "bg-surface text-muted")
         }`}
       >
@@ -41,7 +41,7 @@ export function RankRow({ rank, name, rating, school, isMe = false, jenjang }: R
       <Avatar name={name} tone={isMe ? "violet" : rank === 1 ? "orange" : "ink"} size={38} />
       <span className="flex min-w-0 flex-1 flex-col">
         <span className="flex min-w-0 items-center gap-2">
-          <span className="min-w-0 truncate text-[15px] font-extrabold">{name}</span>
+          <span className="min-w-0 truncate text-[0.9375rem] font-extrabold">{name}</span>
           {isMe && <Chip tone="violetPenuh" size="sm">Kamu</Chip>}
         </span>
         {(school || jenjang) && (

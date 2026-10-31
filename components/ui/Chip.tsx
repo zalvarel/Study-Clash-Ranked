@@ -19,9 +19,9 @@ const TONES: Record<ChipTone, string> = {
 export type ChipSize = "xs" | "sm" | "md" | "lg";
 
 const SIZES: Record<ChipSize, string> = {
-  xs: "h-[18px] px-1.5 text-[10px]",
-  sm: "h-[22px] px-2 text-xs",
-  md: "h-[26px] px-[11px] text-xs",
+  xs: "h-[1.125rem] px-1.5 text-[0.625rem]",
+  sm: "h-[1.375rem] px-2 text-xs",
+  md: "h-[1.625rem] px-[0.6875rem] text-xs",
   lg: "h-9 px-4 text-sm",
 };
 
@@ -39,7 +39,7 @@ export function Chip({ tone = "violet", size = "md", className = "", ...props }:
 
 const JENJANG_TONE: Record<Jenjang, ChipTone> = { SD: "orange", SMP: "violet", SMA: "ink" };
 
-/** Chip jenjang: SD oranye, SMP ungu, SMA/SMK hitam. */
+/** Chip jenjang: SD oranye, SMP/MTs ungu, SMA/SMK hitam. Label dari JENJANG_LABEL. */
 export function JenjangChip({ jenjang, size, className }: { jenjang: Jenjang; size?: ChipSize; className?: string }) {
   return (
     <Chip tone={JENJANG_TONE[jenjang]} size={size} className={className}>

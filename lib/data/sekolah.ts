@@ -2,10 +2,13 @@ import type { Jenjang } from "@/lib/types";
 
 export const DAFTAR_JENJANG: Jenjang[] = ["SD", "SMP", "SMA"];
 
-/** Label jenjang di UI. */
+/**
+ * Label jenjang di UI. Hanya tampilan: nilai yang dikirim ke backend tetap "SD" | "SMP" | "SMA".
+ * SMP mencakup MTs, SMA mencakup SMK.
+ */
 export const JENJANG_LABEL: Record<Jenjang, string> = {
   SD: "SD",
-  SMP: "SMP",
+  SMP: "SMP / MTs",
   SMA: "SMA / SMK",
 };
 
@@ -37,6 +40,12 @@ export const SEKOLAH: Record<Jenjang, readonly string[]> = {
     "SMP Sejahtera Prigen",
     "SMP Al Asyary Al Khoziny",
     "SMPN 10 Pasuruan",
+    // Madrasah Tsanawiyah (setara SMP).
+    "MTsN 1 Pasuruan",
+    "MTsN 2 Pasuruan",
+    "MTs Maarif Prigen",
+    "MTs Al Azhar Prigen",
+    "MTs Darul Ulum Prigen",
   ],
   SMA: [
     "SMKN Prigen",
@@ -51,6 +60,9 @@ function normalisasi(teks: string) {
   return teks.toLocaleLowerCase("id").replace(/\s+/g, " ").trim();
 }
 
+/** Kata pencarian yang berarti sama dengan singkatan di nama sekolah. */
+const SINONIM: Record<string, string> = { madrasah: "mts", tsanawiyah: "mts" };
+
 /**
  * Cari sekolah di satu jenjang. Setiap kata pada `kata` harus muncul di nama
  * sekolah (urutan bebas, tidak peka huruf besar/kecil). Kata kosong = semua.
@@ -59,7 +71,7 @@ export function cariSekolah(jenjang: Jenjang, kata: string): string[] {
   const potongan = normalisasi(kata).split(" ").filter(Boolean);
   return SEKOLAH[jenjang].filter((nama) => {
     const n = normalisasi(nama);
-    return potongan.every((p) => n.includes(p));
+    return potongan.every((p) => n.includes(p) || (SINONIM[p] !== undefined && n.includes(SINONIM[p])));
   });
 }
 

@@ -7,15 +7,16 @@ import { getSocket } from "@/lib/socket";
 import { getSupabase } from "@/lib/supabase";
 import { useNow, formatClock } from "@/lib/use-now";
 import { displayName, readProfilSekolah, useCurrentUser } from "@/lib/auth";
-import { tingkatDariWaktu } from "@/lib/ui-config";
+import { getProfile } from "@/lib/api";
+import { tierDariRating, tingkatDariWaktu } from "@/lib/ui-config";
+import type { ActiveQuestion, DuelState } from "@/lib/duel";
 import {
   Avatar,
   Chip,
   Icon,
-  JenjangChip,
   MobileColumn,
   OptionButton,
-  TierChip,
+  SchoolName,
   TingkatChip,
   inputClass,
 } from "@/components/ui";
@@ -37,6 +38,21 @@ export default function DuelScreen() {
   const user = useCurrentUser();
   const namaSaya = user ? displayName(user) : "Kamu";
   const profilSaya = user ? readProfilSekolah(user) : null;
+  /** Rating sendiri untuk kartu VS (getProfile yang sama dengan Beranda). */
+  const [ratingSaya, setRatingSaya] = useState<number | null>(null);
+  const sedangHitungMundur = duel?.status === "countdown" && user !== null;
+  useEffect(() => {
+    if (!sedangHitungMundur) return;
+    let active = true;
+    getProfile()
+      .then((p) => {
+        if (active) setRatingSaya(p.rating);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [sedangHitungMundur]);
 
   useEffect(() => {
     if (duel === undefined) return;
@@ -185,59 +201,16 @@ export default function DuelScreen() {
   if (duel?.status === "countdown" && duel.startsAt) {
     const msLeft = Math.max(0, new Date(duel.startsAt).getTime() - (now ?? 0));
     const secsLeft = Math.ceil(msLeft / 1000);
-    const label = duel.mode === "bot" ? "Latihan" : duel.mode === "room" ? "Room" : "Ranked";
     return (
-      <MobileColumn className="relative gap-6 overflow-hidden px-6 pt-10 pb-6 sm:px-10">
-        <span aria-hidden="true" className="capsule absolute bottom-40 -left-10 h-10 w-40 bg-violet-50" />
-        <span aria-hidden="true" className="capsule absolute bottom-24 -right-10 h-10 w-36 bg-orange-50" />
-
-        <div className="relative flex flex-col items-center gap-3 text-center">
-          <Chip tone="violetPenuh">
-            <Icon name="petir" size={14} />
-            {label}
-          </Chip>
-          <h1 className="text-[30px] leading-tight font-extrabold">Lawan ditemukan</h1>
-        </div>
-
-        <div className="relative flex items-stretch gap-2.5">
-          <div className="flex flex-1 flex-col items-center gap-2 rounded-card-sm border-2 border-violet bg-violet-50 p-4 text-center">
-            <Avatar name={namaSaya} size={60} />
-            <span className="text-[11px] font-extrabold tracking-wider text-violet-ink">KAMU</span>
-            <span className="w-full truncate text-base font-extrabold">{namaSaya}</span>
-            {profilSaya && <JenjangChip jenjang={profilSaya.jenjang} size="sm" />}
-          </div>
-          <span aria-hidden="true" className="self-center text-base font-extrabold text-muted">
-            VS
-          </span>
-          <div className="flex flex-1 flex-col items-center gap-2 rounded-card-sm border-2 border-orange bg-orange-50 p-4 text-center">
-            <Avatar name={duel.opponent.nickname} tone="orange" size={60} />
-            <span className="text-[11px] font-extrabold tracking-wider text-orange-ink">LAWAN</span>
-            <span className="w-full truncate text-base font-extrabold">{duel.opponent.nickname}</span>
-            <span className="flex items-center gap-1.5">
-              <TierChip rating={duel.opponent.rating} size="sm" />
-              <span className="text-sm font-extrabold text-orange-ink">
-                <span className="sr-only">Rating </span>
-                {duel.opponent.rating}
-              </span>
-            </span>
-          </div>
-        </div>
-
-        <p className="relative flex items-start gap-2.5 rounded-button bg-violet-50 p-4 text-[13px] leading-5 font-semibold text-violet-ink">
-          <Icon name="perisai" size={18} className="mt-px shrink-0" />
-          {duel.mode === "ranked"
-            ? "Ranked dimainkan tanpa bantuan AI. Akun yang terdeteksi curang akan direset. Waktu dihitung oleh server dan berpindah tab akan dicatat."
-            : "Waktu dihitung oleh server dan berpindah tab akan dicatat."}
-        </p>
-
-        <p
-          role="timer"
-          aria-live="polite"
-          className="relative mt-auto flex h-14 items-center justify-center rounded-button bg-ink text-base font-bold text-white"
-        >
-          Mulai dalam {secsLeft} detik
-        </p>
-      </MobileColumn>
+      <LawanDitemukan
+        mode={duel.mode}
+        namaSaya={namaSaya}
+        sekolahSaya={profilSaya?.sekolah ?? null}
+        ratingSaya={ratingSaya}
+        lawan={duel.opponent}
+        aturan={duel.currentQuestion}
+        detik={secsLeft}
+      />
     );
   }
 
@@ -286,12 +259,13 @@ export default function DuelScreen() {
         <div className="flex min-w-0 flex-1 items-center gap-2.5 lg:rounded-card-sm lg:border-2 lg:border-violet lg:bg-violet-50 lg:p-5">
           <Avatar name={namaSaya} size={44} className="hidden min-[400px]:flex lg:size-14" />
           <span className="flex min-w-0 flex-col">
-            <span className="text-[11px] font-extrabold tracking-wider text-violet">KAMU</span>
+            <span className="text-[0.6875rem] font-extrabold tracking-wider text-violet">KAMU</span>
             <span className="truncate text-base font-extrabold lg:text-xl">{namaSaya}</span>
+            {profilSaya && <SchoolName name={profilSaya.sekolah} className="hidden text-xs text-muted sm:flex" />}
           </span>
         </div>
         <p className="flex shrink-0 flex-col items-center justify-center leading-none">
-          <span className="text-[40px] font-extrabold tabular-nums lg:text-[64px]">
+          <span className="text-[2.5rem] font-extrabold tabular-nums lg:text-[4rem]">
             <span className="sr-only">Poinmu </span>
             <span className="text-violet">{duel.myTotalPoints}</span>
             <span aria-hidden="true" className="px-1 text-muted">:</span>
@@ -302,7 +276,7 @@ export default function DuelScreen() {
         </p>
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2.5 text-right lg:rounded-card-sm lg:border-2 lg:border-orange lg:bg-orange-50 lg:p-5">
           <span className="flex min-w-0 flex-col items-end">
-            <span className="text-[11px] font-extrabold tracking-wider text-orange-ink">LAWAN</span>
+            <span className="text-[0.6875rem] font-extrabold tracking-wider text-orange-ink">LAWAN</span>
             <span className="max-w-full truncate text-base font-extrabold lg:text-xl">{duel.opponent.nickname}</span>
             <span className="text-xs text-muted">
               <span className="sr-only">Rating </span>
@@ -354,12 +328,12 @@ export default function DuelScreen() {
       </div>
 
       {/* Soal */}
-      <div className="relative flex min-h-[150px] items-center justify-center overflow-hidden rounded-card bg-violet-50 px-6 py-8 lg:min-h-[200px] lg:border-[1.5px] lg:border-line lg:bg-white">
+      <div className="relative flex min-h-[9.375rem] items-center justify-center overflow-hidden rounded-card bg-violet-50 px-6 py-8 lg:min-h-[12.5rem] lg:border-[1.5px] lg:border-line lg:bg-white">
         <span aria-hidden="true" className="capsule absolute -top-3 -right-6 h-8 w-28 bg-violet-100" />
         <h2
           ref={headingRef}
           tabIndex={-1}
-          className="relative w-full text-center text-[22px] leading-snug font-extrabold outline-none sm:text-2xl lg:text-[32px]"
+          className="relative w-full text-center text-[1.375rem] leading-snug font-extrabold outline-none sm:text-2xl lg:text-[2rem]"
         >
           <MathText text={q.body} />
         </h2>
@@ -397,7 +371,7 @@ export default function DuelScreen() {
           <button
             type="submit"
             disabled={duel.myAnswer !== null}
-            className="h-[52px] rounded-input bg-violet px-6 text-base font-bold text-white hover:bg-violet-hover disabled:bg-line disabled:text-muted"
+            className="h-[3.25rem] rounded-input bg-violet px-6 text-base font-bold text-white hover:bg-violet-hover disabled:bg-line disabled:text-muted"
           >
             Kirim
           </button>
@@ -424,5 +398,127 @@ export default function DuelScreen() {
         )}
       </div>
     </MobileColumn>
+  );
+}
+
+const MODE_LABEL = { ranked: "Ranked", bot: "Latihan", room: "Room" } as const;
+const MODE_SUB = {
+  ranked: "Rating kalian berdekatan.",
+  bot: "Bot siap. Latihan tidak mengubah rating.",
+  room: "Temanmu sudah masuk. Room tidak mengubah rating.",
+} as const;
+
+type LawanDitemukanProps = {
+  mode: DuelState["mode"];
+  namaSaya: string;
+  sekolahSaya: string | null;
+  ratingSaya: number | null;
+  lawan: DuelState["opponent"];
+  /** Soal aktif kalau sudah ada; dipakai untuk kartu aturan (angka dari server saja). */
+  aturan: ActiveQuestion | null;
+  detik: number;
+};
+
+/** Layar hitung mundur: kartu VS, peringatan, aturan (bila datanya ada), "Mulai dalam N detik". */
+function LawanDitemukan({ mode, namaSaya, sekolahSaya, ratingSaya, lawan, aturan, detik }: LawanDitemukanProps) {
+  return (
+    <MobileColumn
+      brandBar
+      width="wide"
+      bareDesktop
+      className="relative gap-6 overflow-hidden px-5 pt-10 pb-6 sm:px-8 lg:gap-8 lg:overflow-visible lg:px-0 lg:pt-4"
+    >
+      <span aria-hidden="true" className="capsule absolute bottom-40 -left-10 h-10 w-40 bg-violet-50 lg:hidden" />
+      <span aria-hidden="true" className="capsule absolute bottom-24 -right-10 h-10 w-36 bg-orange-50 lg:hidden" />
+
+      <div className="relative flex flex-col items-center gap-3 text-center">
+        <Chip tone="violetPenuh" size="lg">
+          <Icon name={mode === "bot" ? "bot" : mode === "room" ? "room" : "petir"} size={16} />
+          {MODE_LABEL[mode]}
+        </Chip>
+        <h1 className="text-[1.875rem] leading-tight font-extrabold tracking-tight lg:text-5xl">Lawan ditemukan</h1>
+        <p className="text-[0.9375rem] text-muted lg:text-lg">{MODE_SUB[mode]}</p>
+      </div>
+
+      <div className="relative grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-stretch gap-2.5 lg:gap-6">
+        <KartuPemain sisi="kamu" nama={namaSaya} sekolah={sekolahSaya} rating={ratingSaya} />
+        <span aria-hidden="true" className="self-center text-base font-extrabold text-muted lg:text-2xl">
+          VS
+        </span>
+        <KartuPemain sisi="lawan" nama={lawan.nickname} sekolah={null} rating={lawan.rating} />
+      </div>
+
+      {aturan && (
+        <section aria-labelledby="aturan-judul" className="relative flex flex-col gap-3 rounded-card-sm border-[1.5px] border-line bg-white p-5 lg:p-7">
+          <h2 id="aturan-judul" className="text-base font-extrabold lg:text-xl">
+            Aturan {MODE_LABEL[mode].toLowerCase()} · {aturan.totalQuestions} soal
+          </h2>
+          <p className="text-sm text-muted">
+            Soal ini {aturan.timeLimitSec} detik. Waktu tiap soal bisa berbeda.
+          </p>
+        </section>
+      )}
+
+      <div className="relative mt-auto flex flex-col gap-4 lg:mt-0 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(16rem,22rem)] lg:items-stretch lg:gap-6">
+        <p className="flex items-start gap-2.5 rounded-button bg-violet-50 p-4 text-[0.8125rem] leading-5 text-violet-ink lg:p-5 lg:text-[0.9375rem] lg:leading-6">
+          <Icon name="perisai" size={18} className="mt-px shrink-0" />
+          {mode === "ranked" ? (
+            <span>
+              <strong className="font-extrabold">Ranked dimainkan tanpa bantuan AI.</strong> Akun yang terdeteksi curang
+              akan direset. Waktu dihitung oleh server dan berpindah tab akan dicatat.
+            </span>
+          ) : (
+            <span className="font-semibold">Waktu dihitung oleh server dan berpindah tab akan dicatat.</span>
+          )}
+        </p>
+        <p
+          role="timer"
+          aria-live="polite"
+          className="flex h-14 items-center justify-center rounded-button bg-ink text-base font-bold text-white lg:h-auto lg:min-h-16 lg:text-lg"
+        >
+          Mulai dalam {detik} detik
+        </p>
+      </div>
+    </MobileColumn>
+  );
+}
+
+function KartuPemain({
+  sisi,
+  nama,
+  sekolah,
+  rating,
+}: {
+  sisi: "kamu" | "lawan";
+  nama: string;
+  sekolah: string | null;
+  rating: number | null;
+}) {
+  const kamu = sisi === "kamu";
+  return (
+    <div
+      className={`flex min-w-0 flex-col items-center gap-2 rounded-card-sm border-2 p-4 text-center lg:flex-row lg:gap-4 lg:p-6 ${
+        kamu ? "border-violet bg-violet-50 lg:text-left" : "border-orange bg-orange-50 lg:flex-row-reverse lg:text-right"
+      }`}
+    >
+      <Avatar name={nama} tone={kamu ? "violet" : "orange"} size={60} className="lg:size-20 lg:text-[2rem]" />
+      <div className={`flex w-full min-w-0 flex-col items-center gap-0.5 ${kamu ? "lg:items-start" : "lg:items-end"}`}>
+        <span className={`text-[0.6875rem] font-extrabold tracking-wider ${kamu ? "text-violet-ink" : "text-orange-ink"}`}>
+          {kamu ? "KAMU" : "LAWAN"}
+        </span>
+        <span className="w-full truncate text-base font-extrabold lg:text-2xl">{nama}</span>
+        {sekolah && <SchoolName name={sekolah} className="max-w-full text-xs text-muted lg:text-sm" />}
+        <span className={`text-sm font-extrabold lg:text-base ${kamu ? "text-violet" : "text-orange-ink"}`}>
+          {rating !== null ? (
+            <>
+              {tierDariRating(rating)} · <span className="sr-only">rating </span>
+              {rating}
+            </>
+          ) : (
+            <span className="text-muted">Memuat...</span>
+          )}
+        </span>
+      </div>
+    </div>
   );
 }

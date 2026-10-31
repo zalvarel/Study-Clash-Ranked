@@ -32,7 +32,7 @@ export function OptionButton({
       aria-pressed={selected}
       aria-disabled={locked || undefined}
       onClick={locked ? undefined : onClick}
-      className={`flex min-h-16 w-full items-center gap-3.5 rounded-tile px-4 py-2.5 text-left text-lg font-bold text-ink transition-colors aria-disabled:cursor-default sm:min-h-[70px] ${
+      className={`flex min-h-16 w-full items-center gap-3.5 rounded-tile px-4 py-2.5 text-left text-lg font-bold text-ink transition-colors aria-disabled:cursor-default sm:min-h-[4.375rem] ${
         selected
           ? "border-2 border-violet bg-violet-50"
           : "border-[1.5px] border-line bg-white not-aria-disabled:hover:border-violet not-aria-disabled:hover:bg-violet-50/50 aria-disabled:text-muted"
@@ -41,7 +41,7 @@ export function OptionButton({
     >
       <span
         aria-hidden="true"
-        className={`flex size-[34px] shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${
+        className={`flex size-[2.125rem] shrink-0 items-center justify-center rounded-full text-sm font-extrabold ${
           selected ? "bg-violet text-white" : "bg-surface text-muted"
         }`}
       >

@@ -28,8 +28,8 @@ export default function PembahasanScreen() {
           <Icon name="kembali" size={20} />
         </Link>
         <div className="flex flex-col gap-1">
-          <h1 className="text-[26px] leading-tight font-extrabold lg:text-[36px]">Pembahasan</h1>
-          <p className="text-[15px] leading-[22px] text-muted">
+          <h1 className="text-[1.625rem] leading-tight font-extrabold lg:text-[2.25rem]">Pembahasan</h1>
+          <p className="text-[0.9375rem] leading-[1.375rem] text-muted">
             {wrong.length > 0
               ? `${wrong.length} soal yang perlu kamu pelajari dari duel tadi.`
               : "Semua jawabanmu benar. Tidak ada soal yang perlu dipelajari."}
@@ -69,7 +69,7 @@ export default function PembahasanScreen() {
                 <Icon name="buku" size={16} />
                 Penjelasan
               </h3>
-              <p className="text-[15px] leading-6 text-muted">
+              <p className="text-[0.9375rem] leading-6 text-muted">
                 <MathText text={item.explanation} />
               </p>
             </div>
@@ -77,7 +77,7 @@ export default function PembahasanScreen() {
         ))}
       </ul>
 
-      <div className="mt-auto flex flex-col gap-2 pt-6 lg:mx-auto lg:w-full lg:max-w-[420px]">
+      <div className="mt-auto flex flex-col gap-2 pt-6 lg:mx-auto lg:w-full lg:max-w-[26.25rem]">
         <ButtonLink href={duelAgainHref(duel)} variant="sekunder">Duel Lagi</ButtonLink>
         <ButtonLink href="/lobby" variant="tautan">Ke Beranda</ButtonLink>
       </div>
