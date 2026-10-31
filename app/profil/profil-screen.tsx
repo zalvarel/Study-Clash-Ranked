@@ -72,16 +72,16 @@ export default function ProfilScreen() {
       className="gap-5 px-5 pt-6 pb-6 sm:px-8 lg:px-0 lg:pt-4"
       topBarRight={<UserBar nama={nama} sekolah={sekolah} jenjang={jenjang} />}
     >
-      <h1 className="text-[28px] leading-tight font-extrabold lg:sr-only">Profil</h1>
+      <h1 className="text-[1.75rem] leading-tight font-extrabold lg:sr-only">Profil</h1>
 
-      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[400px_minmax(0,1fr)] lg:items-start lg:gap-6">
+      <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)] lg:items-start lg:gap-6 min-[1440px]:gap-8">
         <div className="flex flex-col gap-5 lg:gap-6">
           {/* Kartu identitas */}
           <Card padding="md" className="flex flex-col gap-4 lg:p-8">
             <div className="flex items-center gap-4">
               <Avatar name={nama} size={76} className="ring-[6px] ring-violet-50 lg:size-24" />
               <div className="flex min-w-0 flex-col gap-2">
-                <h2 className="truncate text-2xl leading-tight font-extrabold lg:text-[32px]">
+                <h2 className="truncate text-2xl leading-tight font-extrabold lg:text-[2rem]">
                   {nama}
                 </h2>
                 <div className="flex flex-wrap gap-1.5">
@@ -90,7 +90,7 @@ export default function ProfilScreen() {
                 </div>
               </div>
             </div>
-            <div className="flex flex-col gap-1.5 text-[15px]">
+            <div className="flex flex-col gap-1.5 text-[0.9375rem]">
               {sekolah && (
                 <p className="flex min-w-0 items-center gap-2">
                   {isSekolahTerdaftar(sekolah) && <FlagID />}
@@ -107,12 +107,12 @@ export default function ProfilScreen() {
             </div>
             <dl className="grid grid-cols-2 border-t border-line pt-4 text-center">
               <div className="flex flex-col gap-1">
-                <dt className="text-[13px] text-muted">Rating</dt>
-                <dd className="text-[30px] leading-none font-extrabold text-violet">{stats?.rating ?? "–"}</dd>
+                <dt className="text-[0.8125rem] text-muted">Rating</dt>
+                <dd className="text-[1.875rem] leading-none font-extrabold text-violet">{stats?.rating ?? "–"}</dd>
               </div>
               <div className="flex flex-col gap-1">
-                <dt className="text-[13px] text-muted">Peringkat global</dt>
-                <dd className="text-[30px] leading-none font-extrabold">{stats ? `#${stats.rank}` : "–"}</dd>
+                <dt className="text-[0.8125rem] text-muted">Peringkat global</dt>
+                <dd className="text-[1.875rem] leading-none font-extrabold">{stats ? `#${stats.rank}` : "–"}</dd>
               </div>
             </dl>
             <ButtonLink href="/pengaturan" variant="sekunder">
@@ -161,8 +161,8 @@ function Statistik() {
       <dl className="grid grid-cols-2 gap-3">
         {item.map((i) => (
           <div key={i.label} className="rounded-tile border-[1.5px] border-line p-4">
-            <dt className="text-[13px] font-semibold text-muted">{i.label}</dt>
-            <dd className={`text-[26px] font-extrabold ${i.kelas}`}>{i.nilai}</dd>
+            <dt className="text-[0.8125rem] font-semibold text-muted">{i.label}</dt>
+            <dd className={`text-[1.625rem] font-extrabold ${i.kelas}`}>{i.nilai}</dd>
           </div>
         ))}
       </dl>
@@ -179,7 +179,7 @@ function Pencapaian() {
             <span aria-hidden="true" className="flex size-14 items-center justify-center rounded-tile bg-violet-50 text-violet">
               <Icon name="petir" size={22} />
             </span>
-            <span className="text-[13px] font-bold">{p.nama}</span>
+            <span className="text-[0.8125rem] font-bold">{p.nama}</span>
           </li>
         ))}
       </ul>
@@ -197,7 +197,7 @@ function Penghargaan() {
               <Icon name="trofi" size={20} />
             </span>
             <span className="flex flex-col">
-              <span className="text-[15px] font-extrabold">{p.nama}</span>
+              <span className="text-[0.9375rem] font-extrabold">{p.nama}</span>
               <span className="text-xs text-muted">{p.keterangan}</span>
             </span>
           </li>
@@ -222,7 +222,7 @@ function Riwayat() {
               {m.hasil === "menang" ? "M" : "K"}
             </span>
             <span className="flex min-w-0 flex-1 flex-col">
-              <span className="text-[15px] font-extrabold">vs {m.lawan}</span>
+              <span className="text-[0.9375rem] font-extrabold">vs {m.lawan}</span>
               <span className="text-xs text-muted">
                 {m.skorKamu} : {m.skorLawan}
               </span>

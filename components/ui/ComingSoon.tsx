@@ -6,7 +6,7 @@ import { LABEL_CONTOH } from "@/lib/ui-demo";
 export function ComingSoon({ title, children, className = "" }: { title: string; children?: ReactNode; className?: string }) {
   return (
     <div
-      className={`flex flex-col items-start gap-2 rounded-[22px] border-[1.5px] border-dashed border-zinc-300 bg-surface p-5 ${className}`}
+      className={`flex flex-col items-start gap-2 rounded-[1.375rem] border-[1.5px] border-dashed border-zinc-300 bg-surface p-5 ${className}`}
     >
       <Chip tone="netral">Segera hadir</Chip>
       <p className="text-base font-bold text-ink">{title}</p>

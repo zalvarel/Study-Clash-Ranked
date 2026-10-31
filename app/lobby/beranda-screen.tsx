@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { displayName, readProfilSekolah, useCurrentUser } from "@/lib/auth";
-import { getProfile, type Profile } from "@/lib/api";
+import { getLeaderboard, getProfile, JENJANG_LABEL, type Jenjang, type Leaderboard, type Profile } from "@/lib/api";
 import { tampilanFitur, tierBerikutnya, tierDariRating } from "@/lib/ui-config";
 import { CONTOH_PERTANDINGAN_TERAKHIR } from "@/lib/ui-demo";
 import {
@@ -18,6 +18,7 @@ import {
   Icon,
   JenjangChip,
   MobileColumn,
+  RankRow,
   SchoolName,
   UserBar,
   errorClass,
@@ -106,30 +107,23 @@ export default function BerandaScreen() {
           <Avatar name={nama} size={44} />
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <h1 className="flex min-w-0 flex-col">
-              <span className="text-[13px] font-medium text-muted">Halo,</span>
+              <span className="text-[0.8125rem] font-medium text-muted">Halo,</span>
               <span className="truncate text-xl leading-tight font-extrabold">{nama}</span>
             </h1>
-            <div className="flex min-w-0 items-center gap-2 text-[13px] text-muted">
+            <div className="flex min-w-0 items-center gap-2 text-[0.8125rem] text-muted">
               {jenjang && <JenjangChip jenjang={jenjang} size="sm" />}
               {sekolah && <SchoolName name={sekolah} />}
             </div>
           </div>
-          <Link
-            href="/pengaturan"
-            aria-label="Pengaturan"
-            className="flex size-11 shrink-0 items-center justify-center rounded-input border-[1.5px] border-line text-ink hover:bg-surface"
-          >
-            <Icon name="pengaturan" size={20} />
-          </Link>
         </header>
 
         {/* Judul desktop */}
         <div className="hidden flex-col gap-1 lg:flex">
-          <h1 className="text-[40px] leading-tight font-extrabold tracking-tight">Halo, {nama}</h1>
+          <h1 className="text-[2.5rem] leading-tight font-extrabold tracking-tight">Halo, {nama}</h1>
           <p className="text-base text-muted">Pilih cara bermainmu hari ini.</p>
         </div>
 
-        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1fr)_380px] lg:items-start lg:gap-6">
+        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[minmax(0,1.65fr)_minmax(20rem,1fr)] lg:items-start lg:gap-6 min-[1440px]:gap-8">
           <div className="flex flex-col gap-4 lg:gap-6">
             <RankedCard stats={stats} />
 
@@ -143,7 +137,7 @@ export default function BerandaScreen() {
                   <Icon name="room" size={22} />
                 </span>
                 <span className="text-base font-extrabold lg:text-2xl">Room</span>
-                <span className="text-[13px] leading-5 text-muted lg:text-base">Main bareng teman pakai kode.</span>
+                <span className="text-[0.8125rem] leading-5 text-muted lg:text-base">Main bareng teman pakai kode.</span>
               </button>
               <Link
                 href="/cari?mode=bot"
@@ -153,7 +147,7 @@ export default function BerandaScreen() {
                   <Icon name="bot" size={22} />
                 </span>
                 <span className="text-base font-extrabold lg:text-2xl">Latihan Bot</span>
-                <span className="text-[13px] leading-5 text-muted lg:text-base">Tanpa rating, bebas coba.</span>
+                <span className="text-[0.8125rem] leading-5 text-muted lg:text-base">Tanpa rating, bebas coba.</span>
               </Link>
             </div>
           </div>
@@ -161,6 +155,7 @@ export default function BerandaScreen() {
           <div className="flex flex-col gap-4 lg:gap-6">
             {tamu && <GuestCard onLogout={handleLogout} />}
             <PertandinganTerakhir />
+            {jenjang && <PeringkatSingkat jenjang={jenjang} />}
           </div>
         </div>
       </MobileColumn>
@@ -171,7 +166,8 @@ export default function BerandaScreen() {
           roomCode={roomCode}
           roomError={roomError}
           onChange={(v) => {
-            setRoomCode(v.toUpperCase());
+            // Tempel kode apa pun: ambil huruf/angka saja, kapital, maks 4 karakter.
+            setRoomCode(v.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 4));
             setRoomError(null);
           }}
           onJoin={handleGabungRoom}
@@ -192,8 +188,8 @@ function RankedCard({ stats }: { stats: Profile | null }) {
       className="relative overflow-hidden rounded-card bg-ink p-5 text-white sm:p-6 lg:p-10"
     >
       {/* Hiasan kapsul. */}
-      <span aria-hidden="true" className="capsule absolute top-10 -right-8 h-9 w-28 bg-violet-ink lg:top-24 lg:h-24 lg:w-80" />
-      <span aria-hidden="true" className="capsule absolute top-[84px] -right-10 h-9 w-28 bg-[#8a400f] lg:top-[216px] lg:h-24 lg:w-80" />
+      <span aria-hidden="true" className="capsule absolute top-10 -right-8 h-9 w-28 bg-violet-ink lg:top-24 lg:h-24 lg:w-[30%]" />
+      <span aria-hidden="true" className="capsule absolute top-[5.25rem] -right-10 h-9 w-28 bg-[#8a400f] lg:top-[13.5rem] lg:h-24 lg:w-[30%]" />
 
       <div className="relative flex flex-col gap-4">
         <div className="flex items-center gap-2">
@@ -209,7 +205,7 @@ function RankedCard({ stats }: { stats: Profile | null }) {
         </div>
 
         <div className="flex flex-wrap items-end gap-x-3 gap-y-1">
-          <p className="text-[56px] leading-none font-extrabold tracking-tight tabular-nums lg:text-[112px]">
+          <p className="text-[3.5rem] leading-none font-extrabold tracking-tight tabular-nums lg:text-[7rem]">
             <span className="sr-only">Rating </span>
             {stats?.rating ?? "–"}
           </p>
@@ -219,8 +215,8 @@ function RankedCard({ stats }: { stats: Profile | null }) {
         </div>
 
         {berikut && (
-          <div className="flex max-w-[500px] flex-col gap-2">
-            <div className="flex justify-between text-[13px] font-medium text-white/80 lg:text-base">
+          <div className="flex max-w-[31.25rem] flex-col gap-2">
+            <div className="flex justify-between text-[0.8125rem] font-medium text-white/80 lg:text-base">
               <span>Menuju {berikut.tier}</span>
               <span>{berikut.kurang} poin lagi</span>
             </div>
@@ -275,6 +271,46 @@ function GuestCard({ onLogout }: { onLogout: () => void }) {
   );
 }
 
+/** Tiga teratas di jenjangmu (getLeaderboard yang sama dengan halaman Peringkat). Desktop saja. */
+function PeringkatSingkat({ jenjang }: { jenjang: Jenjang }) {
+  const [board, setBoard] = useState<Leaderboard | null>(null);
+  useEffect(() => {
+    let active = true;
+    getLeaderboard(jenjang)
+      .then((b) => {
+        if (active) setBoard(b);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [jenjang]);
+
+  return (
+    <Card padding="md" className="hidden flex-col gap-3 lg:flex">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="text-base font-extrabold lg:text-xl">Peringkat · {JENJANG_LABEL[jenjang]}</h2>
+        <Link href="/peringkat" className="text-sm font-bold underline underline-offset-4 hover:decoration-2">
+          Lihat semua
+        </Link>
+      </div>
+      {!board ? (
+        <p role="status" className="text-sm text-muted">Memuat peringkat...</p>
+      ) : board.entries.length === 0 ? (
+        <p className="text-sm text-muted">Belum ada pemain di jenjang ini.</p>
+      ) : (
+        <ol className="flex flex-col gap-1" aria-label="Tiga teratas">
+          {board.entries.slice(0, 3).map((r) => (
+            <li key={`${r.rank}-${r.name}`}>
+              <RankRow rank={r.rank} name={r.name} rating={r.rating} school={r.sekolah} />
+            </li>
+          ))}
+        </ol>
+      )}
+    </Card>
+  );
+}
+
 /** Pertandingan terakhir: belum ada datanya di backend (flag pertandinganTerakhir). */
 function PertandinganTerakhir() {
   const tampilan = tampilanFitur("pertandinganTerakhir");
@@ -298,7 +334,7 @@ function PertandinganTerakhir() {
           {m.hasil === "menang" ? "M" : "K"}
         </span>
         <span className="flex min-w-0 flex-1 flex-col">
-          <span className="text-[15px] font-extrabold">vs {m.lawan}</span>
+          <span className="text-[0.9375rem] font-extrabold">vs {m.lawan}</span>
           <span className="text-xs text-muted">
             {m.skorKamu} : {m.skorLawan}
           </span>
@@ -347,7 +383,7 @@ function RoomModal({ inputRef, roomCode, roomError, onChange, onJoin, onCreate, 
         role="dialog"
         aria-modal="true"
         aria-labelledby="room-judul"
-        className="flex max-h-[92dvh] w-full flex-col gap-5 overflow-auto rounded-t-card bg-white p-6 sm:max-w-[440px] sm:rounded-card sm:p-8"
+        className="flex max-h-[92dvh] w-full flex-col gap-5 overflow-auto rounded-t-card bg-white p-6 sm:max-w-[27.5rem] sm:rounded-card sm:p-8"
       >
         <div className="flex flex-col gap-1">
           <h2 id="room-judul" className="text-2xl font-extrabold">
@@ -360,7 +396,7 @@ function RoomModal({ inputRef, roomCode, roomError, onChange, onJoin, onCreate, 
           <label htmlFor="room-code" className="text-base font-extrabold">
             Masuk dengan kode
           </label>
-          <p id="room-code-help" className="-mt-2 text-[13px] text-muted">
+          <p id="room-code-help" className="-mt-2 text-[0.8125rem] text-muted">
             Minta kode 4 karakter dari temanmu.
           </p>
           {/* Satu input asli di atas empat kotak tampilan. */}
@@ -395,7 +431,6 @@ function RoomModal({ inputRef, roomCode, roomError, onChange, onJoin, onCreate, 
               autoComplete="off"
               autoCapitalize="characters"
               spellCheck={false}
-              maxLength={4}
               value={roomCode}
               onChange={(e) => onChange(e.target.value)}
               onFocus={() => setFokusInput(true)}

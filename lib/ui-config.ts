@@ -16,7 +16,6 @@ export const FITUR = {
   riwayat: false, // riwayat duel
   pencapaian: false, // pencapaian
   penghargaan: false, // penghargaan
-  laporkan: false, // laporkan pemain/soal
   blokir: false, // blokir pemain
   tingkatBot: false, // pilihan tingkat Latihan Bot
   pertandinganTerakhir: false, // kartu pertandingan terakhir di Beranda
@@ -24,6 +23,13 @@ export const FITUR = {
 } as const;
 
 export type Fitur = keyof typeof FITUR;
+
+/**
+ * Laporan lawan (lib/ui-report.ts). Formulirnya selalu tampil di hasil Ranked.
+ * false (default): belum ada endpoint. Kirim = pesan "belum aktif", atau sukses simulasi saat UI_DEMO.
+ * true: nyalakan setelah submitReport dihubungkan ke endpoint laporan di backend.
+ */
+export const reportEnabled = false;
 
 /**
  * Cara menampilkan sebuah fitur:

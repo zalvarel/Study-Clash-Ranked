@@ -76,16 +76,16 @@ export default function LengkapiScreen() {
             <Chip tone={akunGoogle ? "violet" : "netral"}>{akunGoogle ? "Langkah terakhir" : "Mode tamu"}</Chip>
           </div>
           <div className="flex flex-col gap-1.5">
-            <h1 className="text-[28px] leading-tight font-extrabold tracking-tight lg:text-[44px]">Lengkapi profilmu</h1>
+            <h1 className="text-[1.75rem] leading-tight font-extrabold tracking-tight lg:text-[2.75rem]">Lengkapi profilmu</h1>
             <p className="text-base text-muted lg:text-lg">Biar lawanmu selevel denganmu.</p>
           </div>
         </div>
 
         {akunGoogle ? (
-          <div className="flex items-center gap-3 rounded-button border-[1.5px] border-line bg-white px-3.5 py-2.5 lg:min-w-[380px] lg:px-4 lg:py-3">
+          <div className="flex items-center gap-3 rounded-button border-[1.5px] border-line bg-white px-3.5 py-2.5 lg:min-w-[23.75rem] lg:px-4 lg:py-3">
             <Avatar name={nama} size={44} />
             <div className="flex min-w-0 flex-col">
-              <span className="truncate text-[15px] font-extrabold">{nama}</span>
+              <span className="truncate text-[0.9375rem] font-extrabold">{nama}</span>
               <span className="text-xs font-medium text-muted">Akun Google</span>
             </div>
             <Chip tone="sukses" className="ml-auto">
@@ -94,7 +94,7 @@ export default function LengkapiScreen() {
             </Chip>
           </div>
         ) : (
-          <p className="flex items-start gap-2.5 rounded-button bg-surface px-3.5 py-3 text-[13px] leading-5 font-semibold text-muted">
+          <p className="flex items-start gap-2.5 rounded-button bg-surface px-3.5 py-3 text-[0.8125rem] leading-5 font-semibold text-muted">
             <Icon name="info" size={18} className="mt-px shrink-0" />
             Akun tamu hanya tersimpan di browser ini.
           </p>

@@ -9,12 +9,12 @@ export function TingkatChip({ timeLimitSec, className = "" }: { timeLimitSec: nu
   const tingkat = tingkatDariWaktu(timeLimitSec);
   return (
     <Chip tone={TONE[tingkat]} size="lg" className={className}>
-      <span aria-hidden="true" className="flex h-3 items-end gap-[2px]">
+      <span aria-hidden="true" className="flex h-3 items-end gap-[0.125rem]">
         {[1, 2, 3].map((i) => (
           <span
             key={i}
-            className={`w-[3px] rounded-sm bg-current ${i <= BATANG[tingkat] ? "" : "opacity-30"}`}
-            style={{ height: `${i * 4}px` }}
+            className={`w-[0.1875rem] rounded-sm bg-current ${i <= BATANG[tingkat] ? "" : "opacity-30"}`}
+            style={{ height: `${i * 0.25}rem` }}
           />
         ))}
       </span>

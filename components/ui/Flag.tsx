@@ -6,7 +6,7 @@ export function FlagID({ className = "" }: { className?: string }) {
     <span
       role="img"
       aria-label="Indonesia"
-      className={`inline-flex h-3 w-[18px] shrink-0 flex-col overflow-hidden rounded-[2px] ring-1 ring-line ${className}`}
+      className={`inline-flex h-3 w-[1.125rem] shrink-0 flex-col overflow-hidden rounded-[0.125rem] ring-1 ring-line ${className}`}
     >
       <span className="flex-1 bg-[#CE1126]" />
       <span className="flex-1 bg-white" />

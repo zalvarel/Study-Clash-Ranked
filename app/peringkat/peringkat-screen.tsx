@@ -10,7 +10,6 @@ import {
   FlagID,
   Icon,
   JenjangChip,
-  Logo,
   MobileColumn,
   RankRow,
   SchoolName,
@@ -20,17 +19,18 @@ import {
 } from "@/components/ui";
 
 type Tab = "sekolah" | "global";
-type Filter = Jenjang | "semua";
+type Filter = Jenjang;
 
 const TABS = [
   { value: "sekolah", label: "Sekolahku" },
   { value: "global", label: "Global" },
 ] as const;
 
-const FILTERS: { id: Filter; label: string }[] = [
-  { id: "semua", label: "Semua" },
-  ...DAFTAR_JENJANG.map((j) => ({ id: j, label: JENJANG_LABEL[j].replace(" / ", "/") })),
-];
+/** Chip jenjang: SD, SMP/MTs, SMA/SMK. Nilai tetap "SD" | "SMP" | "SMA". */
+const FILTERS: { id: Filter; label: string }[] = DAFTAR_JENJANG.map((j) => ({
+  id: j,
+  label: JENJANG_LABEL[j].replace(" / ", "/"),
+}));
 
 /** Baris yang sama dengan pemain sendiri (data peringkat tidak punya id). */
 function samaDenganSaya(row: LeaderboardEntry, me: LeaderboardEntry) {
@@ -50,7 +50,7 @@ export default function PeringkatScreen() {
   useEffect(() => {
     if (!filter) return;
     let active = true;
-    getLeaderboard(filter === "semua" ? undefined : filter).then((b) => {
+    getLeaderboard(filter).then((b) => {
       if (active) setBoard(b);
     });
     return () => {
@@ -59,10 +59,10 @@ export default function PeringkatScreen() {
   }, [filter]);
 
   // Abaikan data milik filter sebelumnya.
-  const current = board && (board.jenjang ?? "semua") === filter ? board : null;
+  const current = board && board.jenjang === filter ? board : null;
   const nama = user ? displayName(user) : "";
   const sekolahku = profil?.sekolah ?? "";
-  const filterLabel = filter === "semua" ? "semua jenjang" : filter ? JENJANG_LABEL[filter] : "";
+  const filterLabel = filter ? JENJANG_LABEL[filter] : "";
 
   // Sekolahku: disaring di klien dari 10 teratas jenjangmu.
   const barisSekolah = current ? current.entries.filter((r) => r.sekolah === sekolahku) : [];
@@ -78,9 +78,8 @@ export default function PeringkatScreen() {
       topBarRight={user ? <UserBar nama={nama} sekolah={profil?.sekolah} jenjang={profil?.jenjang} /> : undefined}
     >
       <header className="flex items-center gap-3">
-        <Logo size={52} className="-ml-2 lg:size-16" />
         <div className="flex flex-col">
-          <h1 className="text-[28px] leading-tight font-extrabold lg:text-[40px]">Peringkat</h1>
+          <h1 className="text-[1.75rem] leading-tight font-extrabold lg:text-[2.5rem]">Peringkat</h1>
           <p className="text-sm text-muted lg:text-base">
             {tab === "sekolah" ? "Rating tertinggi di sekolahmu" : `Rating tertinggi, ${filterLabel}`}
           </p>
@@ -88,7 +87,7 @@ export default function PeringkatScreen() {
       </header>
 
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:gap-4">
-        <Segmented options={TABS} value={tab} onChange={setTab} label="Jenis peringkat" className="lg:w-[400px]" />
+        <Segmented options={TABS} value={tab} onChange={setTab} label="Jenis peringkat" className="lg:w-[25rem] lg:shrink-0" />
         {tab === "global" && (
           <div role="group" aria-label="Filter jenjang" className="flex flex-wrap gap-2">
             {FILTERS.map((f) => {
@@ -116,7 +115,7 @@ export default function PeringkatScreen() {
           Memuat peringkat...
         </p>
       ) : (
-        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start lg:gap-6">
+        <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(19rem,22rem)] min-[1440px]:gap-8 lg:items-start lg:gap-6">
           <section className="flex flex-col gap-3 lg:rounded-card lg:border-[1.5px] lg:border-line lg:bg-white lg:p-7">
             {tab === "sekolah" && (
               <div className="flex items-center gap-3 rounded-card-sm bg-violet-50 p-4 lg:bg-transparent lg:p-0 lg:pb-2">
@@ -125,7 +124,7 @@ export default function PeringkatScreen() {
                 </span>
                 <div className="flex min-w-0 flex-1 flex-col">
                   <h2 className="truncate text-base font-extrabold lg:text-2xl">{sekolahku}</h2>
-                  <span className="flex items-center gap-1.5 text-[13px] text-muted">
+                  <span className="flex items-center gap-1.5 text-[0.8125rem] text-muted">
                     {isSekolahTerdaftar(sekolahku) && (
                       <>
                         <FlagID />
@@ -137,7 +136,7 @@ export default function PeringkatScreen() {
                 </div>
                 <div className="flex flex-col items-end lg:hidden">
                   <span className="text-xs font-bold text-violet-ink">Peringkatmu</span>
-                  <span className="text-[28px] leading-none font-extrabold text-violet">
+                  <span className="text-[1.75rem] leading-none font-extrabold text-violet">
                     {peringkatSekolah ? `#${peringkatSekolah}` : "–"}
                   </span>
                 </div>
@@ -157,7 +156,6 @@ export default function PeringkatScreen() {
                         name={row.name}
                         rating={row.rating}
                         school={tab === "global" ? row.sekolah : undefined}
-                        jenjang={tab === "global" && filter === "semua" ? row.jenjang : undefined}
                         isMe={samaDenganSaya(row, current.me)}
                       />
                     </li>
@@ -172,7 +170,7 @@ export default function PeringkatScreen() {
               </>
             )}
 
-            {tab === "global" && !current.entries.some((r) => samaDenganSaya(r, current.me)) && (
+            {tab === "global" && filter === jenjangSendiri && !current.entries.some((r) => samaDenganSaya(r, current.me)) && (
               <>
                 <p aria-hidden="true" className="text-center text-xl font-bold text-muted">
                   ...
@@ -187,18 +185,18 @@ export default function PeringkatScreen() {
               <h2 id="peringkatmu-judul" className="text-xl font-extrabold">Peringkatmu</h2>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-1 rounded-card-sm bg-violet-50 p-4">
-                  <span className="text-[13px] font-bold text-violet-ink">Di sekolahmu</span>
-                  <span className="text-[36px] leading-none font-extrabold text-violet">
+                  <span className="text-[0.8125rem] font-bold text-violet-ink">Di sekolahmu</span>
+                  <span className="text-[2.25rem] leading-none font-extrabold text-violet">
                     {peringkatSekolah ? `#${peringkatSekolah}` : "–"}
                   </span>
                   <span className="text-xs text-muted">{peringkatSekolah ? sekolahku : "Belum masuk 10 besar"}</span>
                 </div>
                 <div className="flex flex-col gap-1 rounded-card-sm bg-surface p-4">
-                  <span className="text-[13px] font-bold text-muted">
-                    Global {filter && filter !== "semua" ? JENJANG_LABEL[filter] : ""}
+                  <span className="text-[0.8125rem] font-bold text-muted">
+                    Global {filter ? JENJANG_LABEL[filter] : ""}
                   </span>
-                  <span className="text-[36px] leading-none font-extrabold">#{current.me.rank}</span>
-                  <span className="text-xs text-muted">{filter === "semua" ? "Semua jenjang" : "Di jenjangmu"}</span>
+                  <span className="text-[2.25rem] leading-none font-extrabold">#{current.me.rank}</span>
+                  <span className="text-xs text-muted">{filter === jenjangSendiri ? "Di jenjangmu" : "Di jenjang ini"}</span>
                 </div>
               </div>
               <div className="flex items-center justify-between">
@@ -235,10 +233,10 @@ function RankTable({ rows, me, showSchool }: { rows: LeaderboardEntry[]; me: Lea
           const saya = samaDenganSaya(r, me);
           const sel = saya ? "bg-violet-50 border-y-[1.5px] border-violet" : "";
           return (
-            <tr key={`${r.rank}-${r.name}`} className="text-[15px]">
+            <tr key={`${r.rank}-${r.name}`} className="text-[0.9375rem]">
               <td className={`rounded-l-tile px-3 py-3 ${sel} ${saya ? "border-l-[1.5px]" : ""}`}>
                 <span
-                  className={`flex size-[30px] items-center justify-center rounded-[10px] text-sm font-extrabold ${
+                  className={`flex size-[1.875rem] items-center justify-center rounded-[0.625rem] text-sm font-extrabold ${
                     r.rank === 1
                       ? "bg-orange-ink text-white"
                       : r.rank === 2 || saya
@@ -261,7 +259,7 @@ function RankTable({ rows, me, showSchool }: { rows: LeaderboardEntry[]; me: Lea
                 </span>
               </td>
               {showSchool && (
-                <td className={`max-w-[220px] px-3 py-3 text-sm text-muted ${sel}`}>
+                <td className={`max-w-[13.75rem] px-3 py-3 text-sm text-muted ${sel}`}>
                   <SchoolName name={r.sekolah} />
                 </td>
               )}
@@ -291,7 +289,7 @@ function EmptySchool() {
         <Icon name="room" size={24} />
       </span>
       <h2 className="text-lg font-extrabold">Baru kamu dari sekolah ini</h2>
-      <p className="max-w-[340px] text-sm leading-6 text-muted">
+      <p className="max-w-[21.25rem] text-sm leading-6 text-muted">
         Belum ada teman sekolahmu di 10 besar. Ajak temanmu main bareng supaya peringkat sekolahmu ramai.
       </p>
       <ButtonLink href="/cari?mode=create_room" className="lg:hidden">Buat Room</ButtonLink>
@@ -323,7 +321,7 @@ function InviteCard() {
         <Icon name="salin" size={18} />
         Salin tautan ajakan
       </button>
-      <p role="status" className="min-h-5 text-[13px] font-semibold text-violet-ink">
+      <p role="status" className="min-h-5 text-[0.8125rem] font-semibold text-violet-ink">
         {tersalin}
       </p>
     </section>

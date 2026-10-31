@@ -123,7 +123,7 @@ export default function LoginScreen() {
         <span aria-hidden="true" className="capsule absolute top-[7%] -right-10 hidden h-12 w-72 bg-orange-50 lg:block" />
         <span aria-hidden="true" className="capsule absolute top-[14%] right-[5%] hidden h-12 w-56 bg-violet-50 lg:block" />
 
-        <main className="relative flex w-full flex-1 flex-col overflow-hidden bg-white px-6 pt-8 pb-6 sm:min-h-[720px] sm:max-w-[560px] sm:flex-none sm:rounded-card sm:border-[1.5px] sm:border-line sm:px-10 sm:pt-10 sm:pb-8 lg:min-h-0 lg:max-w-[460px] lg:overflow-visible lg:rounded-none lg:border-0 lg:p-0">
+        <main className="relative flex w-full flex-1 flex-col overflow-hidden bg-white px-6 pt-8 pb-6 sm:min-h-[45rem] sm:max-w-[35rem] sm:flex-none sm:rounded-card sm:border-[1.5px] sm:border-line sm:px-10 sm:pt-10 sm:pb-8 lg:min-h-0 lg:max-w-[28.75rem] lg:overflow-visible lg:rounded-none lg:border-0 lg:p-0">
           {/* Hiasan latar ponsel/tablet. */}
           <span aria-hidden="true" className="capsule absolute top-12 -left-8 h-8 w-32 bg-violet-50 lg:hidden" />
           <span aria-hidden="true" className="capsule absolute top-28 -right-8 h-8 w-28 bg-orange-50 lg:hidden" />
@@ -133,10 +133,10 @@ export default function LoginScreen() {
               {/* Ponsel/tablet: identitas aplikasi. Desktop: ada di panel kiri. */}
               <div className="relative flex flex-1 flex-col items-center justify-center gap-4 py-10 text-center lg:hidden">
                 <Logo size={96} />
-                <h1 data-judul="pilih" tabIndex={-1} className="text-[28px] leading-tight font-extrabold focus:outline-none">
+                <h1 data-judul="pilih" tabIndex={-1} className="text-[1.75rem] leading-tight font-extrabold focus:outline-none">
                   Study Clash Ranked
                 </h1>
-                <p className="max-w-[300px] text-base leading-6 text-muted">
+                <p className="max-w-[18.75rem] text-base leading-6 text-muted">
                   Duel soal matematika 1 lawan 1. Lawanmu selalu selevel.
                 </p>
                 <ul className="flex flex-wrap justify-center gap-2" aria-label="Fitur">
@@ -147,7 +147,7 @@ export default function LoginScreen() {
               </div>
 
               <div className="relative hidden flex-col gap-2 pb-10 lg:flex">
-                <h1 data-judul="pilih" tabIndex={-1} className="text-[40px] leading-tight font-extrabold tracking-tight focus:outline-none">
+                <h1 data-judul="pilih" tabIndex={-1} className="text-[2.5rem] leading-tight font-extrabold tracking-tight focus:outline-none">
                   Selamat datang
                 </h1>
                 <p className="text-base text-muted">Pilih cara masuk untuk mulai bermain.</p>
@@ -166,7 +166,7 @@ export default function LoginScreen() {
                   Main sebagai tamu
                 </Button>
                 {pesanGalat}
-                <dl className="mt-2 flex flex-col gap-3 rounded-button border-[1.5px] border-line p-4 text-[13px] leading-5 text-muted sm:text-sm sm:leading-6">
+                <dl className="mt-2 flex flex-col gap-3 rounded-button border-[1.5px] border-line p-4 text-[0.8125rem] leading-5 text-muted sm:text-sm sm:leading-6">
                   <div className="flex items-start gap-3">
                     <dt className="shrink-0"><Chip tone="violet">Google</Chip></dt>
                     <dd>Akunmu bisa dipakai di perangkat mana saja.</dd>
@@ -194,7 +194,7 @@ export default function LoginScreen() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <h1 data-judul="tamu" tabIndex={-1} className="text-[28px] leading-tight font-extrabold focus:outline-none lg:text-[34px]">
+                <h1 data-judul="tamu" tabIndex={-1} className="text-[1.75rem] leading-tight font-extrabold focus:outline-none lg:text-[2.125rem]">
                   Main sebagai tamu
                 </h1>
                 <p className="text-base text-muted">Biar lawanmu selevel denganmu.</p>
@@ -241,7 +241,7 @@ export default function LoginScreen() {
                 <Button type="submit" disabled={loading !== null}>
                   {loading === "guest" ? "Masuk..." : "Mulai bermain"}
                 </Button>
-                <p className="flex items-center justify-center gap-2 text-center text-[13px] font-medium text-muted">
+                <p className="flex items-center justify-center gap-2 text-center text-[0.8125rem] font-medium text-muted">
                   <Icon name="info" size={16} className="shrink-0" />
                   Akun tamu hanya tersimpan di browser ini.
                 </p>
@@ -256,7 +256,7 @@ export default function LoginScreen() {
 
 /** Panel kiri desktop (>= 1024px): identitas dan keunggulan aplikasi. */
 function HeroPanel() {
-  const poin = ["Duel langsung 1 lawan 1", "Lawan dengan rating selevel", "Peringkat SD, SMP, dan SMA/SMK"];
+  const poin = ["Duel langsung 1 lawan 1", "Lawan dengan rating selevel", "Peringkat SD, SMP/MTs, dan SMA/SMK"];
   return (
     <section
       aria-labelledby="hero-judul"
@@ -266,7 +266,7 @@ function HeroPanel() {
         <Logo size={48} tone="putih" />
         Study Clash Ranked
       </span>
-      <div className="relative mt-[14vh] flex max-w-[520px] flex-col gap-6">
+      <div className="relative mt-[14vh] flex max-w-[32.5rem] flex-col gap-6">
         <p id="hero-judul" className="text-5xl leading-[1.05] font-extrabold tracking-tight xl:text-6xl">
           Adu cepat hitung.
           <br />

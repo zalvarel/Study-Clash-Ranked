@@ -43,15 +43,15 @@ export default function PengaturanScreen() {
         >
           <Icon name="kembali" size={20} />
         </button>
-        <h1 className="text-[26px] leading-tight font-extrabold">Pengaturan</h1>
+        <h1 className="text-[1.625rem] leading-tight font-extrabold">Pengaturan</h1>
       </div>
 
       <Grup judul="Akun">
         <div className="flex items-center gap-3 p-4">
           <Avatar name={nama} size={44} />
           <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-[15px] font-extrabold">{nama}</span>
-            <span className="truncate text-[13px] text-muted">
+            <span className="truncate text-[0.9375rem] font-extrabold">{nama}</span>
+            <span className="truncate text-[0.8125rem] text-muted">
               {tamu ? "Akun tamu · tersimpan di browser ini" : (user.email ?? "Akun Google")}
             </span>
           </div>
@@ -77,14 +77,14 @@ export default function PengaturanScreen() {
           {profil ? <SchoolName name={profil.sekolah} className="justify-end" /> : "–"}
         </Baris>
       </Grup>
-      <p className="-mt-3 px-1 text-[13px] text-muted">Profil belum bisa diubah dari aplikasi.</p>
+      <p className="-mt-3 px-1 text-[0.8125rem] text-muted">Profil belum bisa diubah dari aplikasi.</p>
 
       <Grup judul="Lainnya">
         <Link href="/bantuan" className="flex min-h-14 items-center gap-3 px-4 py-3 hover:bg-surface">
           <span aria-hidden="true" className="flex size-9 items-center justify-center rounded-xl bg-surface text-ink">
             <Icon name="bantuan" size={18} />
           </span>
-          <span className="flex-1 text-[15px] font-bold">Bantuan dan privasi</span>
+          <span className="flex-1 text-[0.9375rem] font-bold">Bantuan dan privasi</span>
           <Icon name="kanan" size={18} className="text-muted" />
         </Link>
       </Grup>
@@ -115,7 +115,7 @@ export default function PengaturanScreen() {
 function Grup({ judul, children }: { judul: string; children: ReactNode }) {
   return (
     <section aria-label={judul} className="flex flex-col gap-2">
-      <h2 className="px-1 text-[13px] font-extrabold tracking-wide text-muted uppercase">{judul}</h2>
+      <h2 className="px-1 text-[0.8125rem] font-extrabold tracking-wide text-muted uppercase">{judul}</h2>
       <div className="flex flex-col divide-y divide-line overflow-hidden rounded-tile border-[1.5px] border-line bg-white">
         {children}
       </div>
@@ -129,7 +129,7 @@ function Baris({ icon, label, children }: { icon: IconName; label: string; child
       <span aria-hidden="true" className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet">
         <Icon name={icon} size={18} />
       </span>
-      <span className="shrink-0 text-[15px] font-bold">{label}</span>
+      <span className="shrink-0 text-[0.9375rem] font-bold">{label}</span>
       <span className="ml-auto min-w-0 truncate text-right text-sm text-muted">{children}</span>
     </div>
   );

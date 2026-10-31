@@ -12,7 +12,7 @@ export function Logo({ size = 64, tone = "biasa", className = "" }: LogoProps) {
     <span
       aria-hidden="true"
       className={`relative inline-block shrink-0 ${className}`}
-      style={{ width: size, height: size }}
+      style={{ width: `${size / 16}rem`, height: `${size / 16}rem` }}
     >
       <span
         className={`capsule absolute top-[25%] left-[13%] h-[19%] w-[57%] ${tone === "putih" ? "bg-white" : "bg-violet"}`}
