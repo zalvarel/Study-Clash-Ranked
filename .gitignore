@@ -51,3 +51,8 @@ logs/
 *.log
 tmp/
 .cache/
+
+# === Next.js / TypeScript ===
+*.tsbuildinfo
+next-env.d.ts
+*.pem
