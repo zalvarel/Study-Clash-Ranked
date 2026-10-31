@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { displayName, useCurrentUser } from "@/lib/auth";
 import { getProfile, JENJANG_LABEL, type Profile } from "@/lib/api";
 import { Button, ButtonLink, MobileColumn } from "@/components/ui";
+import { getSupabase } from "@/lib/supabase";
+import { disconnectSocket } from "@/lib/socket";
 
 export default function BerandaScreen() {
   const user = useCurrentUser();
@@ -58,6 +60,16 @@ export default function BerandaScreen() {
     router.push(`/cari?room=${code}`);
   }
 
+  async function handleLogout() {
+    try {
+      await getSupabase().auth.signOut();
+    } catch {
+      // Ignore
+    }
+    disconnectSocket();
+    router.replace("/login");
+  }
+
   if (!user) {
     return (
       <MobileColumn className="items-center justify-center" nav="beranda">
@@ -74,7 +86,7 @@ export default function BerandaScreen() {
       {/* Header (node 2:50) */}
       <div className="flex items-center gap-3">
         <img src="/figma/avatar-beranda.svg" alt="" width={44} height={44} className="size-11 shrink-0" />
-        <div className="flex min-w-0 flex-col gap-0.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
           <h1 className="flex min-w-0 flex-col gap-0.5">
             <span className="text-sm font-normal text-muted">Halo,</span>
             <span className="truncate text-lg font-bold">{displayName(user)}</span>
@@ -85,6 +97,13 @@ export default function BerandaScreen() {
             </p>
           )}
         </div>
+        <button
+          onClick={handleLogout}
+          type="button"
+          className="ml-auto rounded-xl border-[1.5px] border-line px-3.5 py-1.5 text-xs font-semibold text-muted hover:border-danger hover:text-danger active:bg-surface transition-colors"
+        >
+          Keluar
+        </button>
       </div>
 
       {/* Kartu rating (node 2:55) */}
