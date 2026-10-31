@@ -1,4 +1,5 @@
 import type { ButtonHTMLAttributes } from "react";
+import { MathText } from "@/components/MathText";
 
 type OptionButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> & {
   /** Huruf badge, A sampai D. */
@@ -28,7 +29,7 @@ export function OptionButton({
       aria-pressed={selected}
       aria-disabled={locked || undefined}
       onClick={locked ? undefined : onClick}
-      className={`flex h-14 w-full items-center gap-3.5 rounded-xl px-4 text-left text-lg text-ink transition-colors aria-disabled:cursor-default ${
+      className={`flex min-h-14 w-full items-center gap-3.5 rounded-xl px-4 py-2 text-left text-lg text-ink transition-colors aria-disabled:cursor-default ${
         selected
           ? "border-2 border-ink bg-surface font-bold"
           : "border-[1.5px] border-line bg-white font-semibold not-aria-disabled:hover:border-ink not-aria-disabled:hover:bg-surface aria-disabled:text-muted"
@@ -44,7 +45,9 @@ export function OptionButton({
         {letter}
       </span>
       <span className="sr-only">Opsi {letter}: </span>
-      <span>{text}</span>
+      <span className="min-w-0 flex-1">
+        <MathText text={text} />
+      </span>
     </button>
   );
 }
