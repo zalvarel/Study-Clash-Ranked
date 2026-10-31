@@ -26,13 +26,19 @@ export function registerSocketHandlers(io: TypedServer, socket: TypedSocket, mat
     const payloadJenjang = parsed.success ? parsed.data.jenjang : undefined;
     const effectiveJenjang = payloadJenjang ?? jenjang ?? undefined;
 
+    // Bersihkan entri lama jika pemain sudah pernah ada di antrean
     if (matchStore.isInQueue(userId)) {
-      socket.emit('error', { code: 'ALREADY_IN_QUEUE', message: 'You are already in the matchmaking queue.' });
-      return;
+      matchStore.dequeue(userId);
     }
-    if (matchStore.getActiveDuelByUser(userId)) {
-      socket.emit('error', { code: 'ALREADY_IN_DUEL', message: 'You already have an active duel.' });
-      return;
+
+    const existingDuel = matchStore.getActiveDuelByUser(userId);
+    if (existingDuel) {
+      if (existingDuel.status === 'finished') {
+        matchStore.deleteDuel(existingDuel.duelId);
+      } else {
+        socket.emit('error', { code: 'ALREADY_IN_DUEL', message: 'You already have an active duel.' });
+        return;
+      }
     }
 
     if (isBot) {
@@ -42,6 +48,7 @@ export function registerSocketHandlers(io: TypedServer, socket: TypedSocket, mat
 
     matchStore.enqueue({ userId, nickname, rating, socketId: socket.id, joinedAt: new Date(), subject, jenjang: effectiveJenjang });
     socket.emit('queue:waiting');
+    console.log(`[Queue] ${nickname} (${userId}) joined queue for subject: ${subject}, jenjang: ${effectiveJenjang ?? 'all'}, rating: ${rating}`);
     startMatchmaking(io, socket, matchStore, subject, effectiveJenjang);
   });
 
@@ -165,6 +172,7 @@ function startMatchmaking(
 
     if (elapsed >= DUEL_CONFIG.matchmakingTimeoutMs) {
       matchStore.dequeue(userId);
+      console.log(`[Matchmaking] Timeout reached for ${nickname}. Starting bot duel...`);
       await startBotDuel(io, matchStore, { userId, nickname, rating, socketId: socket.id, jenjang });
       return;
     }
@@ -173,16 +181,33 @@ function startMatchmaking(
     if (currentExpansions > expansions) expansions = currentExpansions;
     const window = DUEL_CONFIG.initialRatingWindow + expansions * DUEL_CONFIG.ratingWindowExpansionStep;
 
-    const queue = matchStore.getQueue(subject).filter(e =>
-      e.userId !== userId &&
-      (jenjang == null || e.jenjang == null || e.jenjang === jenjang)
+    const allCandidates = matchStore.getQueue(subject).filter(e => e.userId !== userId);
+
+    // Tahap 1: Cari lawan dengan jenjang yang sama dalam rating window
+    let opponent = allCandidates.find(
+      e => (jenjang == null || e.jenjang == null || e.jenjang === jenjang) &&
+           Math.abs(e.rating - rating) <= window
     );
-    const opponent = queue.find(e => Math.abs(e.rating - rating) <= window);
+
+    // Tahap 2: Jika sudah menunggu >= 1.5 detik dan belum dapat lawan sejenjang,
+    // pertemukan dengan pemain manusia lain di antrean daripada melawan bot!
+    if (!opponent && elapsed >= 1500) {
+      opponent = allCandidates.find(e => Math.abs(e.rating - rating) <= window * 2);
+    }
 
     if (opponent) {
+      console.log(`[Matchmaking] Match found: ${nickname} (${rating}, ${jenjang ?? 'any'}) vs ${opponent.nickname} (${opponent.rating}, ${opponent.jenjang ?? 'any'})`);
       matchStore.dequeue(userId);
       matchStore.dequeue(opponent.userId);
-      await startDuel(io, matchStore, { userId, nickname, rating, socketId: socket.id }, opponent, 'ranked');
+      const myLiveSocketId = matchStore.getUserSocket(userId) || socket.id;
+      const oppLiveSocketId = matchStore.getUserSocket(opponent.userId) || opponent.socketId;
+      await startDuel(
+        io,
+        matchStore,
+        { userId, nickname, rating, socketId: myLiveSocketId },
+        { ...opponent, socketId: oppLiveSocketId },
+        'ranked'
+      );
     } else {
       setTimeout(attemptMatch, 500);
     }
