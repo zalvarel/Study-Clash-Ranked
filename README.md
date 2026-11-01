@@ -113,7 +113,7 @@ $$
 \text{poin} =
 \begin{cases}
 0 & \text{jika salah atau tidak menjawab} \\[4pt]
-100 + \operatorname{round}\!\left(50 \times \max\!\left(0,\; 1 - \dfrac{t}{T}\right)\right) & \text{jika benar}
+100 + \text{round}\!\left(50 \times \max\!\left(0,\; 1 - \dfrac{t}{T}\right)\right) & \text{jika benar}
 \end{cases}
 $$
 
@@ -145,7 +145,7 @@ $$
 Perubahan rating dan rating baru:
 
 $$
-\Delta = \operatorname{round}\big(K \times (S - E)\big)
+\Delta = \text{round}\big(K \times (S - E)\big)
 \qquad
 R_{\text{baru}} = \max\big(100,\; R_{\text{lama}} + \Delta\big)
 $$
