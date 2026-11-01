@@ -405,7 +405,7 @@ const MODE_LABEL = { ranked: "Ranked", bot: "Latihan", room: "Room" } as const;
 const MODE_SUB = {
   ranked: "Rating kalian berdekatan.",
   bot: "Bot siap. Latihan tidak mengubah rating.",
-  room: "Temanmu sudah masuk. Room tidak mengubah rating.",
+  room: "Temanmu sudah masuk. Hasil duel mengubah rating.",
 } as const;
 
 type LawanDitemukanProps = {

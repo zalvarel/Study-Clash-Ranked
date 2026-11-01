@@ -25,8 +25,9 @@ export const FITUR = {
 export type Fitur = keyof typeof FITUR;
 
 /**
- * Laporan lawan (lib/ui-report.ts). Formulirnya selalu tampil di hasil Ranked.
- * false (default): belum ada endpoint. Kirim = pesan "belum aktif", atau sukses simulasi saat UI_DEMO.
+ * Laporan lawan (lib/ui-report.ts). Tautan "Laporkan lawan" di hasil Ranked hanya tampil kalau
+ * reportEnabled true atau mode demo UI (UI_DEMO).
+ * false (default): belum ada endpoint, jadi tautan disembunyikan.
  * true: nyalakan setelah submitReport dihubungkan ke endpoint laporan di backend.
  */
 export const reportEnabled = false;

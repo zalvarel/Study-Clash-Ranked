@@ -19,7 +19,8 @@ export const DUEL_CONFIG = {
   matchmakingTimeoutMs: 10_000,
   disconnectGraceMs: 10_000,
   suspiciouslyFastMs: 1000,
-  botDuelAffectsRating: true,
+  /** false: duel lawan bot (latihan) tidak mengubah rating dan games_played. */
+  botDuelAffectsRating: false,
 } as const;
 
 export type DuelConfig = typeof DUEL_CONFIG;

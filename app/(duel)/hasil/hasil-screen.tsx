@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useCurrentUser } from "@/lib/auth";
-import { tierBerikutnya } from "@/lib/ui-config";
+import { reportEnabled, tierBerikutnya, UI_DEMO } from "@/lib/ui-config";
 import { ButtonLink, Chip, Icon, MobileColumn, type IconName } from "@/components/ui";
 import { ReportSheet } from "@/components/duel/ReportSheet";
 import { useFinishedDuel, duelAgainHref } from "../use-finished-duel";
@@ -54,8 +54,12 @@ export default function HasilScreen() {
   const benar = result.review.filter((r) => r.wasCorrect).length;
   const badge = BADGE[outcome];
   const ranked = duel.mode === "ranked";
-  // Kemajuan tier hanya untuk Ranked, dari rating setelah duel yang dikirim server.
-  const berikut = ranked ? tierBerikutnya(result.ratingAfter) : null;
+  // Rating berubah di Ranked dan Room (Elo yang sama); Latihan bot tidak mengubah rating.
+  const ubahRating = duel.mode !== "bot";
+  // Tautan laporan disembunyikan sampai endpoint laporan di backend ada (kecuali mode demo UI).
+  const bisaLapor = ranked && (reportEnabled || UI_DEMO);
+  // Kemajuan tier untuk duel yang mengubah rating, dari rating setelah duel yang dikirim server.
+  const berikut = ubahRating ? tierBerikutnya(result.ratingAfter) : null;
 
   return (
     <MobileColumn brandBar width="full" bareDesktop className="px-5 pt-6 pb-6 sm:px-8 lg:px-0 lg:pt-0">
@@ -76,7 +80,7 @@ export default function HasilScreen() {
             <p className="text-base text-muted">Duel melawan {duel.opponent.nickname} selesai.</p>
           </div>
 
-          <div className={`relative grid w-full gap-3 ${ranked ? "grid-cols-2" : "grid-cols-1"}`}>
+          <div className={`relative grid w-full gap-3 ${ubahRating ? "grid-cols-2" : "grid-cols-1"}`}>
             <div className="flex flex-col items-center gap-1 rounded-card-sm border-[1.5px] border-line bg-white p-4 lg:border-0 lg:bg-surface">
               <p className="text-[0.8125rem] font-semibold text-muted">Total poin</p>
               <p className="text-[2.125rem] leading-tight font-extrabold tabular-nums">
@@ -87,7 +91,7 @@ export default function HasilScreen() {
                 <span className="text-orange-ink">{theirs}</span>
               </p>
             </div>
-            {ranked && (
+            {ubahRating && (
               <div className="flex flex-col items-center gap-1 rounded-card-sm bg-violet p-4 text-white">
                 <p className="text-[0.8125rem] font-semibold text-white/85">Rating</p>
                 <p className="text-[2.125rem] leading-tight font-extrabold tabular-nums">{formatDelta(result.ratingChange)}</p>
@@ -97,10 +101,8 @@ export default function HasilScreen() {
               </div>
             )}
           </div>
-          {!ranked && (
-            <p className="relative text-[0.8125rem] font-medium text-muted">
-              {duel.mode === "bot" ? "Latihan tidak mengubah rating." : "Room tidak mengubah rating."}
-            </p>
+          {!ubahRating && (
+            <p className="relative text-[0.8125rem] font-medium text-muted">Latihan tidak mengubah rating.</p>
           )}
 
           {berikut && (
@@ -124,7 +126,7 @@ export default function HasilScreen() {
 
           <div className="relative mt-2 hidden w-full flex-col gap-3 lg:flex">
             <Tombol href={duelAgainHref(duel)} label={MAIN_LAGI[duel.mode]} />
-            {ranked && <TautanLapor onClick={() => setLapor(true)} />}
+            {bisaLapor && <TautanLapor onClick={() => setLapor(true)} />}
           </div>
         </section>
 
@@ -175,7 +177,7 @@ export default function HasilScreen() {
 
         <div className="flex flex-col gap-3 lg:hidden">
           <Tombol href={duelAgainHref(duel)} label={MAIN_LAGI[duel.mode]} />
-          {ranked && <TautanLapor onClick={() => setLapor(true)} />}
+          {bisaLapor && <TautanLapor onClick={() => setLapor(true)} />}
         </div>
       </div>
 
