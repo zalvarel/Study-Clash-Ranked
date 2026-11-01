@@ -11,7 +11,7 @@ const BANTUAN = [
   },
   {
     judul: "Room",
-    isi: "Buat room untuk mendapat kode 4 karakter, lalu bagikan ke temanmu. Duel langsung mulai saat temanmu masuk dengan kode itu.",
+    isi: "Buat room untuk mendapat kode 4 karakter, lalu bagikan ke temanmu. Duel langsung mulai saat temanmu masuk dengan kode itu. Hasil duel room mengubah rating-mu, sama seperti ranked.",
   },
   {
     judul: "Latihan Bot",

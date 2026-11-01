@@ -90,7 +90,7 @@ export function registerSocketHandlers(io: TypedServer, socket: TypedSocket, mat
     host.socketId = hostSocketId;
     const myLatestSocketId = matchStore.getUserSocket(userId) || socket.id;
 
-    await startDuel(io, matchStore, host, { userId, nickname, rating, socketId: myLatestSocketId }, 'room');
+    await startDuel(io, matchStore, host, { userId, nickname, rating, socketId: myLatestSocketId, jenjang: jenjang ?? undefined }, 'room');
   });
 
   socket.on('duel:answer', async (raw) => {
@@ -204,7 +204,7 @@ function startMatchmaking(
       await startDuel(
         io,
         matchStore,
-        { userId, nickname, rating, socketId: myLiveSocketId },
+        { userId, nickname, rating, socketId: myLiveSocketId, jenjang },
         { ...opponent, socketId: oppLiveSocketId },
         'ranked'
       );
@@ -265,7 +265,7 @@ async function startBotDuel(
 
 async function startDuel(
   io: TypedServer, matchStore: MatchStore,
-  p1: { userId: string; nickname: string; rating: number; socketId: string },
+  p1: { userId: string; nickname: string; rating: number; socketId: string; jenjang?: string },
   p2: { userId: string; nickname: string; rating: number; socketId: string; jenjang?: string },
   mode: 'ranked' | 'room'
 ) {
@@ -276,7 +276,10 @@ async function startDuel(
 
   const avgRating = Math.round((p1.rating + p2.rating) / 2);
   const difficultyBand = getDifficultyBand(avgRating);
-  const questions = await pickQuestions('math', difficultyBand, DUEL_CONFIG.questionsPerDuel, p2.jenjang);
+  // Soal harus adil untuk kedua pemain: pakai tingkat kesulitan jenjang hanya kalau keduanya
+  // sama jenjang. Kalau beda atau salah satunya kosong, pakai band dari rata-rata rating.
+  const sharedJenjang = p1.jenjang && p1.jenjang === p2.jenjang ? p1.jenjang : undefined;
+  const questions = await pickQuestions('math', difficultyBand, DUEL_CONFIG.questionsPerDuel, sharedJenjang);
   const duelId = randomUUID();
 
   try {

@@ -288,7 +288,11 @@ export async function finishDuel(io: TypedServer, duel: ActiveDuel, matchStore: 
     if (p2UserId) p2GP = profiles?.find(p => p.id === p2UserId)?.games_played ?? 0;
   } catch (err) { console.warn('[DuelEngine] Warning fetching profiles:', err); }
 
-  const { p1Delta } = computeElo(duel.p1RatingBefore, duel.p2RatingBefore, result, p1GP, isBot ? 999 : p2GP, isBot);
+  // Latihan lawan bot tidak mengubah rating maupun jumlah duel (lihat DUEL_CONFIG.botDuelAffectsRating).
+  const ratingApplies = !isBot || DUEL_CONFIG.botDuelAffectsRating;
+
+  const { p1Delta: eloDelta } = computeElo(duel.p1RatingBefore, duel.p2RatingBefore, result, p1GP, isBot ? 999 : p2GP, isBot);
+  const p1Delta = ratingApplies ? eloDelta : 0;
   let p2Delta = 0;
   if (!isBot && duel.player2) {
     const { p2Delta: d2 } = computeElo(duel.p1RatingBefore, duel.p2RatingBefore, result, p1GP, p2GP, false);
@@ -345,7 +349,9 @@ export async function finishDuel(io: TypedServer, duel: ActiveDuel, matchStore: 
       ended_at: new Date().toISOString(),
     }).eq('id', duel.duelId);
 
-    await db.from('profiles').update({ rating: p1RatingAfter, games_played: p1GP + 1 }).eq('id', duel.player1.userId);
+    if (ratingApplies) {
+      await db.from('profiles').update({ rating: p1RatingAfter, games_played: p1GP + 1 }).eq('id', duel.player1.userId);
+    }
 
     if (!isBot && duel.player2) {
       await db.from('profiles').update({ rating: p2RatingAfter, games_played: p2GP + 1 }).eq('id', duel.player2.userId);
